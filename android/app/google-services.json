@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "992649441229",
+    "project_id": "sketch-it-73486",
+    "storage_bucket": "sketch-it-73486.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:992649441229:android:c68e724594910461b5de84",
+        "android_client_info": {
+          "package_name": "com.sketch_it"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "992649441229-tk7f4qp9mcc7mnhpdd9v8oq351qdm3il.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sketch_it",
+            "certificate_hash": "6ab1580b9c5164660d0fed14658959d0002689c2"
+          }
+        },
+        {
+          "client_id": "992649441229-ucriucc2404bhchk5qjsp1j5aflrmcm6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWaIyU5gHz1JmqLDbaLdbFsFe0CZIaNLs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "992649441229-ucriucc2404bhchk5qjsp1j5aflrmcm6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
