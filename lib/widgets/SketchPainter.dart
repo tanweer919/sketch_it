@@ -8,7 +8,8 @@ class SketchPainter extends CustomPainter {
   final List<Point> offsets;
   final double strokeWidth;
   final Color strokeColor;
-  SketchPainter({@required this.offsets, @required this.strokeWidth, @required this.strokeColor});
+  final canvasRatio;
+  SketchPainter({@required this.offsets, @required this.strokeWidth, @required this.strokeColor, @required this.canvasRatio});
 
 
   @override
@@ -24,10 +25,10 @@ class SketchPainter extends CustomPainter {
         paint.strokeWidth = offsets[i].width;
       }
       if(offsets[i] != null && offsets[i + 1] != null) {
-        canvas.drawLine(offsets[i].offset, offsets[i+1].offset, paint);
+        canvas.drawLine(modifiedOffset(offsets[i].offset), modifiedOffset(offsets[i+1].offset), paint);
       }
       if(offsets[i] != null && offsets[i + 1] == null) {
-        canvas.drawPoints(PointMode.points, [offsets[i].offset], paint);
+        canvas.drawPoints(PointMode.points, [modifiedOffset(offsets[i].offset)], paint);
       }
     }
   }
@@ -35,5 +36,10 @@ class SketchPainter extends CustomPainter {
   @override
   bool shouldRepaint(SketchPainter oldDelegate) {
     return true;
+  }
+
+  Offset modifiedOffset(Offset initialOffset) {
+
+    return Offset(initialOffset.dx * canvasRatio, initialOffset.dy * canvasRatio);
   }
 }

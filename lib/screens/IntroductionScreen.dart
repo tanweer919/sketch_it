@@ -4,12 +4,15 @@ import 'package:flare_flutter/flare_cache.dart';
 import 'package:flare_flutter/provider/asset_flare.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../widgets/WaveClipPath.dart';
 import '../widgets/SmallerWaveClipPath.dart';
 import '../services/GetItLocator.dart';
 import '../services/UserService.dart';
 import '../services/FlushbarHelper.dart';
 import '../services/LocalStorageService.dart';
+import '../Providers/AppProvider.dart';
+import '../models/User.dart';
 
 class IntroductionScreen extends StatefulWidget {
   @override
@@ -39,6 +42,7 @@ class _IntroductionScreenState extends State<IntroductionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppProvider _appProvider = Provider.of<AppProvider>(context);
     return SafeArea(
       child: Scaffold(
         backgroundColor: Color(0xff5D8E9B),
@@ -74,7 +78,7 @@ class _IntroductionScreenState extends State<IntroductionScreen> {
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: Text(
-                            'Welcome to \nSketch It',
+                            'Welcome to \n Just Sketch',
                             style: TextStyle(
                                 fontSize: 35,
                                 color: Colors.white,
@@ -277,6 +281,11 @@ class _IntroductionScreenState extends State<IntroductionScreen> {
                                                               .setString(
                                                                   'username',
                                                                   username);
+                                                          _appProvider
+                                                                  .currentUser =
+                                                              User(
+                                                                  username:
+                                                                      username);
                                                           Navigator.of(context)
                                                               .pushReplacementNamed(
                                                                   '/home');

@@ -1,9 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/Point.dart';
 import '../services/GetItLocator.dart';
 import '../services/SocketStream.dart';
 import '../commons/enums.dart';
-import '../models/Chat.dart';
+
 class PaintProvider extends ChangeNotifier {
   List<Point> _points;
   double _strokeWidth;
@@ -11,22 +12,25 @@ class PaintProvider extends ChangeNotifier {
   Color _backgroundColor;
   Color _strokeColor;
   SocketStream _socketStream = locator<SocketStream>();
-  List<Chat> _messages;
-  PaintProvider(this._points, this._messages, this._strokeWidth, this._optionsIndex, this._backgroundColor,
-      this._strokeColor) {
-    _socketStream.pointStream.listen((data) {
-      if(data["action"] == DrawAction.Draw) {
-        this.addPoints(data["point"]);
+  StreamSubscription _pointStreamSubscription;
+
+  PaintProvider(
+      this._points,
+      this._strokeWidth,
+      this._optionsIndex,
+      this._backgroundColor,
+      this._strokeColor,) {
+    _pointStreamSubscription = _socketStream.pointStream.listen((data) {
+      if (data["action"] == DrawAction.Draw) {
+        this.addPoint(data["point"]);
       }
-      if(data["action"] == DrawAction.ClearDraw) {
+      if (data["action"] == DrawAction.ClearDraw) {
         this.points = [];
       }
     });
   }
 
   List<Point> get points => _points;
-
-  List<Chat> get messages => _messages;
 
   double get strokeWidth => _strokeWidth;
 
@@ -38,11 +42,6 @@ class PaintProvider extends ChangeNotifier {
 
   void set points(List<Point> drawPoints) {
     _points = drawPoints;
-    notifyListeners();
-  }
-
-  void set messages(List<Chat> newMessages) {
-    _messages = newMessages;
     notifyListeners();
   }
 
@@ -66,13 +65,13 @@ class PaintProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addPoints(Point point) {
+
+  void addPoint(Point point) {
     _points.add(point);
     notifyListeners();
   }
 
-  void addMessages(Chat message) {
-    _messages.add(message);
-    notifyListeners();
+  void cancelStreamSubsciptions() {
+    _pointStreamSubscription.cancel();
   }
 }

@@ -1,13 +1,14 @@
 import 'package:dio/dio.dart';
 import 'GetItLocator.dart';
 import 'LocalStorageService.dart';
+import '../constants.dart';
 
 class HttpService {
   LocalStorageService _localStorageService = locator<LocalStorageService>();
   Future<Dio> getAuthenticatedApiClient() async {
     final Map<String, dynamic> tokens =
     await _localStorageService.getAuthToken();
-    BaseOptions options = new BaseOptions(baseUrl: 'https://2a83a690f8c0.ngrok.io/');
+    BaseOptions options = new BaseOptions(baseUrl: '$baseAddress/');
     final _dio = new Dio(options);
     final dio = new Dio(options);
     _dio.interceptors.clear();
@@ -62,7 +63,7 @@ class HttpService {
   }
 
   Future<Dio> getApiClient() async {
-    BaseOptions options = new BaseOptions(baseUrl: 'https://6f0d81afdc4a.ngrok.io/');
+    BaseOptions options = new BaseOptions(baseUrl: '$baseAddress/');
     final _dio = new Dio(options);
     return _dio;
   }

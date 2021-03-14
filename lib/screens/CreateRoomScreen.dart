@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import '../services/SocketIOService.dart';
 import '../services/GetItLocator.dart';
 import '../services/FlushbarHelper.dart';
-class CreateRoomScreen extends StatefulWidget {
+import '../Providers/AppProvider.dart';
 
+class CreateRoomScreen extends StatefulWidget {
   @override
   _CreateRoomScreenState createState() => _CreateRoomScreenState();
 }
 
 class _CreateRoomScreenState extends State<CreateRoomScreen> {
-  SocketIOservice _socketIOService = locator<SocketIOservice>();
+  SocketIOService _socketIOService = locator<SocketIOService>();
   TextEditingController _roomNameController = TextEditingController();
   double maxp = 4;
   int _selectedMode = 0;
@@ -22,8 +24,10 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
 
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
+    final AppProvider appProvider = Provider.of<AppProvider>(context);
     return SafeArea(
       child: Scaffold(
         body: SingleChildScrollView(
@@ -49,7 +53,7 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
                     ),
                   ),
                   Text(
-                    'Choose name for your room',
+                    'Choose a name for your room',
                     style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                   Padding(
@@ -64,7 +68,6 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
                       ),
                       child: TextField(
                         controller: _roomNameController,
-                        textAlign: TextAlign.center,
                         decoration: InputDecoration(
                           hintText: 'Room Name',
                           contentPadding: EdgeInsets.all(8.0),
@@ -96,7 +99,8 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
                             width: 20,
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.all(Radius.circular(2)),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(2)),
                             ),
                             child: Center(child: Text('${maxp.toInt()}')),
                           ),
@@ -111,10 +115,9 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
                         valueIndicatorColor: Colors.blue,
                         activeTickMarkColor: Colors.white,
                         tickMarkShape:
-                            RoundSliderTickMarkShape(tickMarkRadius: 2),
+                            RoundSliderTickMarkShape(tickMarkRadius: 3),
                         inactiveTickMarkColor: Colors.white,
-                        inactiveTrackColor:
-                            Colors.orange, // Custom Gray Color
+                        inactiveTrackColor: Colors.red, // Custom Gray Color
                         activeTrackColor: Color(0xff67C9A2),
                         thumbColor: Color(0xfff6b643),
                         overlayColor:
@@ -176,9 +179,13 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
                                 ),
                                 Container(
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(10)),
                                     color: Color(0X30000000),
-                                    border: _selectedMode == 0 ? Border.all(color: Colors.yellow, width: 3) : null,
+                                    border: _selectedMode == 0
+                                        ? Border.all(
+                                            color: Colors.yellow, width: 3)
+                                        : null,
                                   ),
                                   child: Center(
                                     child: Text(
@@ -198,9 +205,6 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: InkWell(
                           onTap: () {
-                            setState(() {
-                              _selectedMode = 1;
-                            });
                           },
                           child: Container(
                             width: MediaQuery.of(context).size.width * 0.3,
@@ -222,13 +226,17 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
                                 ),
                                 Container(
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(10)),
                                     color: Color(0X30000000),
-                                    border: _selectedMode == 1 ? Border.all(color: Colors.yellow, width: 3) : null,
+                                    border: _selectedMode == 1
+                                        ? Border.all(
+                                            color: Colors.yellow, width: 3)
+                                        : null,
                                   ),
                                   child: Center(
                                     child: Text(
-                                      'Team\nMode',
+                                      'Coming\nSoon',
                                       style: TextStyle(
                                           fontSize: 16, color: Colors.white),
                                       textAlign: TextAlign.center,
@@ -257,24 +265,39 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
                               color: Color(0xffef80ad),
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: _inProgress ? CircularProgressIndicator(
-                                  valueColor:
-                                  new AlwaysStoppedAnimation<Color>(Color(0xfff5f5f5)),
-                                ) : Text(
-                                  'Create Room',
-                                  style: TextStyle(color: Colors.white),
-                                ),
+                                child: _inProgress
+                                    ? CircularProgressIndicator(
+                                        valueColor:
+                                            new AlwaysStoppedAnimation<Color>(
+                                                Color(0xfff5f5f5),),
+                                      )
+                                    : Text(
+                                        'Create Room',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
                               ),
-                              onPressed: _inProgress ? () {} : () {
-                                if(_roomNameController.text != '') {
-                                  setState(() {
-                                    _inProgress = true;
-                                  });
-                                  _socketIOService.createRoom(roomName: _roomNameController.text, maxPlayers: maxp.toInt(), gameMode: _selectedMode);
-                                } else {
-                                  FlushbarAlert.showAlert(context: context, title: 'Error', message: 'Room name cannot be blank', seconds: 3);
-                                }
-                              },
+                              onPressed: _inProgress
+                                  ? () {}
+                                  : () {
+                                      if (_roomNameController.text != '') {
+                                        setState(() {
+                                          _inProgress = true;
+                                        });
+                                        _socketIOService.createRoom(
+                                            roomName: _roomNameController.text,
+                                            maxPlayers: maxp.toInt(),
+                                            gameMode: _selectedMode,
+                                            username: appProvider
+                                                .currentUser.username);
+                                      } else {
+                                        FlushbarAlert.showAlert(
+                                            context: context,
+                                            title: 'Error',
+                                            message:
+                                                'Room name cannot be blank',
+                                            seconds: 3);
+                                      }
+                                    },
                             ),
                           ),
                         ),
@@ -290,16 +313,18 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
     );
   }
 
-  void _onRoomCreated(bool success, int roomId) {
-    if(success) {
+  void _onRoomCreated(bool success, Map<String, dynamic> data) {
+    if (success) {
       setState(() {
         _inProgress = false;
       });
-      Navigator.of(context).pushReplacementNamed('/shareroom', arguments: {"message": "Room created. Waiting for players to join...", "roomId": roomId});
+      Navigator.of(context).pushReplacementNamed('/join', arguments: {
+        "roomId": data["roomId"],
+        "roomCreated": true,
+        "initialRoomData": data["initialRoomData"]
+      });
     } else {
       print("Error in room creation");
     }
   }
-
-
 }

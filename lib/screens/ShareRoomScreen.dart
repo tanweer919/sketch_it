@@ -1,24 +1,25 @@
 import 'package:flushbar/flushbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import 'package:share/share.dart';
 import '../services/SocketIOService.dart';
 import '../services/GetItLocator.dart';
 import '../services/FlushbarHelper.dart';
 import '../commons/custom_icons.dart';
 import '../services/DynamicLinkService.dart';
+import '../Providers/AppProvider.dart';
 class ShareRoomScreen extends StatefulWidget {
   final message;
-  final roomId;
+  final String roomId;
   ShareRoomScreen({Key key, this.message, this.roomId}) : super(key: key);
   @override
   _ShareRoomScreenState createState() => _ShareRoomScreenState();
 }
 
 class _ShareRoomScreenState extends State<ShareRoomScreen> {
-  SocketIOservice _socketIOService = locator<SocketIOservice>();
   final DynamicLinkService _dynamicLinkService = locator<DynamicLinkService>();
-
+  final SocketIOService _socketIOService = locator<SocketIOService>();
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -29,6 +30,7 @@ class _ShareRoomScreenState extends State<ShareRoomScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final AppProvider appProvider = Provider.of<AppProvider>(context);
     return SafeArea(
       child: Scaffold(
         body: SingleChildScrollView(
@@ -112,7 +114,11 @@ class _ShareRoomScreenState extends State<ShareRoomScreen> {
                                       ),
                               ),
                               onPressed: () {
-
+                                _socketIOService.joinRoom(
+                                    roomId:
+                                    widget.roomId,
+                                    username: appProvider.currentUser.username);
+                                Navigator.of(context).pushReplacementNamed('/join', arguments: {"roomId": widget.roomId});
                               },
                             ),
                           ),

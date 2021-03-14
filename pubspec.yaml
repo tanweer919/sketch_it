@@ -1,4 +1,4 @@
-name: sketch_it
+name: just_sketch
 description: A new Flutter project.
 
 # The following line prevents the package from being accidentally published to
@@ -80,6 +80,22 @@ flutter:
     - family: CustomIcons
       fonts:
         - asset: assets/fonts/CustomIcons.ttf
+    - family: IBMPlexSans
+      fonts:
+        - asset: assets/fonts/IBMPlexSans-Light.ttf
+          weight: 300
+        - asset: assets/fonts/IBMPlexSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IBMPlexSans-Bold.ttf
+          weight: 700
+    - family: CaveatBrush
+      fonts:
+        - asset: assets/fonts/CaveatBrush-Regular.ttf
+          weight: 300
+        - asset: assets/fonts/CaveatBrush-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/CaveatBrush-Regular.ttf
+          weight: 700
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

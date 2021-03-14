@@ -4,10 +4,10 @@ import 'package:dio/dio.dart';
 import 'HttpService.dart';
 import 'GetItLocator.dart';
 
-class AddressService {
+class RoomService {
   HttpService _httpService = locator<HttpService>();
 
-  Future<Map<String, dynamic>> checkRoom({int roomId}) async {
+  Future<Map<String, dynamic>> checkRoom({String roomId}) async {
     final Dio dio = await _httpService.getApiClient();
     try {
       final response =

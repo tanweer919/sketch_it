@@ -4,6 +4,7 @@ import '../screens/Home.dart';
 import '../screens/GameScreen.dart';
 import '../screens/ShareRoomScreen.dart';
 import '../commons/CircularRevealClipper.dart';
+import '../screens/IntroductionScreen.dart';
 
 class RouterService {
   final GlobalKey<NavigatorState> navigationKey = GlobalKey<NavigatorState>();
@@ -12,7 +13,8 @@ class RouterService {
       '/home',
       '/join',
       '/createroom',
-      '/shareroom'
+      '/shareroom',
+      '/introduction'
     ];
     if (validRoutes.contains(settings.name)) {
       return customRoutes(settings.name, settings.arguments);
@@ -22,8 +24,10 @@ class RouterService {
   PageRouteBuilder<dynamic> customRoutes(
       String route, Map<String, dynamic> args) {
     String message;
-    int roomId;
+    String roomId;
     Offset offset;
+    bool roomCreated;
+    Map<String, dynamic> initialRoomData;
     if (args != null) {
       if (args.containsKey("message")) {
         message = args["message"];
@@ -33,17 +37,23 @@ class RouterService {
       }
       if (args.containsKey("offset")) {
         offset = args["offset"];
-        print(offset);
+      }
+      if(args.containsKey("roomCreated")) {
+        roomCreated = args["roomCreated"];
+      }
+      if(args.containsKey("initialRoomData")) {
+        initialRoomData = args["initialRoomData"];
       }
     }
     Map<String, Widget> screens = {
       '/home': HomeScreen(),
-      '/join': GameScreen(),
+      '/join': GameScreen(roomId: roomId, roomCreated: roomCreated, initialRoomData: initialRoomData),
       '/createroom': CreateRoomScreen(),
       '/shareroom': ShareRoomScreen(
         message: message,
         roomId: roomId,
-      )
+      ),
+      '/introduction': IntroductionScreen()
     };
     return PageRouteBuilder(
       pageBuilder: (_, __, ___) => screens[route],

@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'HttpService.dart';
 import 'GetItLocator.dart';
-
+import '../models/User.dart';
+import '../services/LocalStorageService.dart';
 class UserService {
   HttpService _httpService = locator<HttpService>();
 
@@ -25,6 +26,7 @@ class UserService {
         "message": "Faced some problem while joining room"
       };
     } on DioError catch (e) {
+      print(e);
       final errorResponse = jsonDecode(e.response.toString()) as Map;
       if (errorResponse.containsKey("status")) {
         return {
@@ -54,5 +56,11 @@ class UserService {
         };
       }
     }
+  }
+
+  Future<User> fetchCurrentUser() async{
+    LocalStorageService _localStorage = locator<LocalStorageService>();
+    final String username = await _localStorage.getString('username');
+    return username != null ? User(username: username) : null;
   }
 }
