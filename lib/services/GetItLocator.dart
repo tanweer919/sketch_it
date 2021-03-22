@@ -45,7 +45,8 @@ void setupLocator() {
         admin: initialData["admin"],
       ),
       initialData["status"],
-      initialData["gameStatus"]
+      initialData["gameStatus"],
+      initialData["sketcher"]
     ),
   );
   locator.registerFactoryParam<AppProvider, User, void>(

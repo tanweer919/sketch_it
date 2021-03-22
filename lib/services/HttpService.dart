@@ -43,8 +43,7 @@ class HttpService {
             try {
               final response = await dio.request(url,
                   data: options.data,
-                  queryParameters: options.queryParameters,
-                  options: options);
+                  queryParameters: options.queryParameters,);
               return response;
             } on DioError catch (e) {
               return e;

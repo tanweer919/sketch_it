@@ -12,6 +12,7 @@ import '../constants.dart';
 import '../models/User.dart';
 import '../commons/enums.dart';
 import '../models/PictionaryWord.dart';
+import '../models/Player.dart';
 
 class SocketIOService {
   Socket socket;
@@ -32,7 +33,7 @@ class SocketIOService {
         socket.emit('connected', {"username": username});
       });
       socket.on(NEW_PLAYER, (username) {
-        _socketStream.addPlayer(User(username: username));
+        _socketStream.addPlayer(Player(user: User(username: username), score: 0));
       });
       socket.on(LEFT_ROOM, (data) {
         final username = data["username"];
@@ -42,10 +43,10 @@ class SocketIOService {
           roomId: roomId,
           message: Chat(
               user: User(username: username),
-              messageTypes: MessageTypes.LeftRoom,
+              messageType: MessageType.LeftRoom,
               message: ''),
         );
-        _socketStream.removePlayer(User(username: username));
+        _socketStream.removePlayer(username);
       });
       socket.on(NEW_MESSAGE, (data) {
         _socketStream.addNewMessage(Chat.fromJson(data));
@@ -96,9 +97,11 @@ class SocketIOService {
       });
 
       socket.on(GAME_STARTED, (data) {
-        print("game started");
         _socketStream.changeGameStatus(GameStatus.Started);
       },);
+      socket.on(NEXT_TURN, (data) {
+        _socketStream.startTurn(data["username"]);
+      });
       socket.on(YOUR_TURN, (data) {
         List<PictionaryWord> pictionaryWords = [];
         final parsedData = data as List;
@@ -106,6 +109,12 @@ class SocketIOService {
           pictionaryWords.add(PictionaryWord.fromJson(parsedData[i]));
         }
         _socketStream.selectWord(pictionaryWords);
+      });
+
+      socket.on(ADD_POINTS, (data) {
+        int points = data["points"];
+        String username = data["username"];
+        _socketStream.addPoints(points, username);
       });
 
       socket.on(START_DRAWING, (data) {
@@ -151,7 +160,7 @@ class SocketIOService {
       roomId: roomId,
       message: Chat(
           user: User(username: username),
-          messageTypes: MessageTypes.JoinedRoom,
+          messageType: MessageType.JoinedRoom,
           message: ''),
     );
   }

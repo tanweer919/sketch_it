@@ -4,6 +4,7 @@ import '../commons/enums.dart';
 import '../models/Chat.dart';
 import '../models/User.dart';
 import '../models/PictionaryWord.dart';
+import '../models/Player.dart';
 class SocketStream {
   StreamController _pointStreamController = StreamController<Map<String, dynamic>>.broadcast();
   StreamController _messageStreamController = StreamController<Chat>.broadcast();
@@ -22,12 +23,12 @@ class SocketStream {
     _messageStreamController.sink.add(message);
   }
 
-  void addPlayer(User player) {
+  void addPlayer(Player player) {
     _playerController.sink.add({"action": PlayerAction.Add, "player" : player});
   }
 
-  void removePlayer(User player) {
-    _playerController.sink.add({"action": PlayerAction.Remove, "player": player});
+  void removePlayer(String username) {
+    _playerController.sink.add({"action": PlayerAction.Remove, "username": username});
   }
 
   void changeGameStatus(GameStatus status) {
@@ -38,12 +39,20 @@ class SocketStream {
     _statusController.sink.add({"action": StatusAction.RoomStatusChange, "status": status});
   }
 
+  void startTurn(String username) {
+    _gameController.sink.add({"action": GameAction.StartTurn, "sketcher": username});
+  }
+
   void selectWord(List<PictionaryWord> words) {
     _gameController.sink.add({"action": GameAction.WordSelection, "words": words});
   }
 
   void startDrawing() {
     _gameController.sink.add({"action": GameAction.StartDrawing});
+  }
+
+  void addPoints(int points, String username) {
+    _gameController.sink.add({"action": GameAction.AddPoints, "points": points, "username": username});
   }
 
   Stream<Map<String, dynamic>> get pointStream => _pointStreamController.stream.asBroadcastStream();

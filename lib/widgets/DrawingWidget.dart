@@ -19,6 +19,7 @@ import '../commons/enums.dart';
 import '../models/User.dart';
 import '../services/SocketStream.dart';
 import 'dart:async';
+import '../models/Player.dart';
 
 class DrawingWidget extends StatefulWidget {
   final canvasHeight;
@@ -55,11 +56,11 @@ class _DrawingWidgetState extends State<DrawingWidget> {
       (data) {
         if (data["action"] == GameAction.StartDrawing) {
           _secondsLeftToDrawTimer = Timer.periodic(
-            Duration(seconds: 60),
+            Duration(seconds: 1),
             (timer) {
               setState(
                 () {
-                  if(seconds > 0) {
+                  if (seconds > 0) {
                     seconds--;
                   }
                 },
@@ -67,6 +68,7 @@ class _DrawingWidgetState extends State<DrawingWidget> {
             },
           );
         }
+        if (data["action"] == GameAction.StartTurn) {}
       },
     );
     super.initState();
@@ -91,7 +93,9 @@ class _DrawingWidgetState extends State<DrawingWidget> {
           child: Stack(
             children: [
               GestureDetector(
-                onPanStart: roomModel.isSketcher
+                onPanStart: isSketcher(
+                        currentSketcher: roomModel.currentSketcher,
+                        player: player)
                     ? (details) {
                         final RenderBox renderBox = context.findRenderObject();
                         model.addPoint(Point(
@@ -109,7 +113,9 @@ class _DrawingWidgetState extends State<DrawingWidget> {
                                 width: model.strokeWidth));
                       }
                     : null,
-                onPanUpdate: roomModel.isSketcher
+                onPanUpdate: isSketcher(
+                        currentSketcher: roomModel.currentSketcher,
+                        player: player)
                     ? (details) {
                         final RenderBox renderBox = context.findRenderObject();
                         model.addPoint(Point(
@@ -126,7 +132,9 @@ class _DrawingWidgetState extends State<DrawingWidget> {
                                 width: model.strokeWidth));
                       }
                     : null,
-                onPanEnd: roomModel.isSketcher
+                onPanEnd: isSketcher(
+                        currentSketcher: roomModel.currentSketcher,
+                        player: player)
                     ? (details) {
                         model.addPoint(null);
                         _socketIOService.sendPoints(
@@ -206,7 +214,9 @@ class _DrawingWidgetState extends State<DrawingWidget> {
                         ),
                       ),
                     ),
-                    if (roomModel.isSketcher)
+                    if (isSketcher(
+                        currentSketcher: roomModel.currentSketcher,
+                        player: player))
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: ClipRRect(
@@ -229,7 +239,8 @@ class _DrawingWidgetState extends State<DrawingWidget> {
                   ],
                 ),
               ),
-              if (roomModel.isSketcher)
+              if (isSketcher(
+                  currentSketcher: roomModel.currentSketcher, player: player))
                 Align(
                   alignment: Alignment.bottomRight,
                   child: editOptions(model: model),
@@ -422,4 +433,8 @@ class _DrawingWidgetState extends State<DrawingWidget> {
 //        color: Colors.black));
 //    paintProvider.points = newPoints;
 //  }
+
+  bool isSketcher({Player currentSketcher, User player}) {
+    return currentSketcher.user.username == player.username;
+  }
 }

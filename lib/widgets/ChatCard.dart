@@ -9,10 +9,11 @@ class ChatCard extends StatelessWidget {
   final bool isCorrect;
   final Chat message;
   ChatCard({this.isCorrect, this.message});
-  Map<MessageTypes, IconData> icons = {
-    MessageTypes.UserMessage: Icons.edit,
-    MessageTypes.JoinedRoom: CustomIcons.enter_room,
-    MessageTypes.LeftRoom: CustomIcons.leave_room
+  Map<MessageType, IconData> icons = {
+    MessageType.UserMessage: Icons.edit,
+    MessageType.JoinedRoom: CustomIcons.enter_room,
+    MessageType.LeftRoom: CustomIcons.leave_room,
+    MessageType.PointsGained: Icons.celebration
   };
 
   @override
@@ -30,7 +31,7 @@ class ChatCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4.0),
               child: Icon(
-                icons[message.messageTypes],
+                icons[message.messageType],
                 color: isCorrect ? Colors.white : Color(0xff3366ff),
                 size: 15,
               ),
@@ -50,25 +51,29 @@ class ChatCard extends StatelessWidget {
     String username = (appProvider.currentUser == message.user)
         ? 'You'
         : message.user.username;
-    Map<MessageTypes, String> generatedMessage = {
-      MessageTypes.UserMessage: '${username}: ',
-      MessageTypes.JoinedRoom: '${username} has joined the room',
-      MessageTypes.LeftRoom: '${username} has left the room',
+    Map<MessageType, String> generatedMessage = {
+      MessageType.UserMessage: '${username}: ',
+      MessageType.JoinedRoom: '${username} has joined the room',
+      MessageType.LeftRoom: '${username} has left the room',
+      MessageType.PointsGained: message.message
     };
     return RichText(
-        text: TextSpan(
-            style: TextStyle(
-              color: isCorrect ? Colors.white : Color(0xff3366ff),
-            ),
-            children: [
+      text: TextSpan(
+        style: TextStyle(
+          color: isCorrect ? Colors.white : Color(0xff3366ff),
+        ),
+        children: [
           TextSpan(
-              text: generatedMessage[message.messageTypes],
-              style: TextStyle(fontWeight: FontWeight.w500)),
-          if (message.messageTypes == MessageTypes.UserMessage)
+            text: generatedMessage[message.messageType],
+            style: TextStyle(fontWeight: FontWeight.w500),
+          ),
+          if (message.messageType == MessageType.UserMessage)
             TextSpan(
                 text: message.message,
                 style:
                     TextStyle(color: isCorrect ? Colors.white : Colors.black))
-        ]));
+        ],
+      ),
+    );
   }
 }

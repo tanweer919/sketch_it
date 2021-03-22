@@ -1,18 +1,18 @@
 import 'commons/enums.dart';
 
-final String baseAddress = 'https://e618f8c6d232.ngrok.io';
-Map<MessageTypes, String> messageTypesToString = {
-  MessageTypes.UserMessage: "userMessage",
-  MessageTypes.JoinedRoom: "joinedRoom",
-  MessageTypes.LeftRoom: "leftRoom",
-  MessageTypes.PointsGained: "pointsGained"
+final String baseAddress = 'https://70be766ff219.ngrok.io';
+Map<MessageType, String> messageTypeToString = {
+  MessageType.UserMessage: "userMessage",
+  MessageType.JoinedRoom: "joinedRoom",
+  MessageType.LeftRoom: "leftRoom",
+  MessageType.PointsGained: "pointsGained"
 };
 
-Map<String, MessageTypes> stringToMessageTypes = {
-  "userMessage": MessageTypes.UserMessage,
-  "joinedRoom": MessageTypes.JoinedRoom,
-  "leftRoom": MessageTypes.LeftRoom,
-  "pointsGained": MessageTypes.PointsGained
+Map<String, MessageType> stringToMessageType = {
+  "userMessage": MessageType.UserMessage,
+  "joinedRoom": MessageType.JoinedRoom,
+  "leftRoom": MessageType.LeftRoom,
+  "pointsGained": MessageType.PointsGained
 };
 
 //Socket Events
@@ -37,5 +37,6 @@ const String START_GAME = "start_game";
 const String GAME_STARTED = "game_started";
 const String NEW_STATUS = "new_status";
 const String START_DRAWING = "start_drawing";
+const String ADD_POINTS = "add_points";
 const String DISCONNECT = "disconnect";
 const String CONNECT_ERROR = "connect_error";

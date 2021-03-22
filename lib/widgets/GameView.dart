@@ -16,6 +16,7 @@ import '../widgets/SlidingDownPanel.dart';
 import '../services/SocketStream.dart';
 import '../models/PictionaryWord.dart';
 import '../widgets/WordSelectionPanel.dart';
+import '../models/Player.dart';
 
 class GameView extends StatefulWidget {
   @override
@@ -77,6 +78,8 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
         if(_slidingAnimationController.isCompleted) {
           _slidingAnimationController.reverse();
         }
+      }
+      if(data["action"] == GameAction.StartTurn) {
       }
     });
     _tabController = new TabController(vsync: this, length: _tabList.length);
@@ -141,7 +144,7 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
                                 final Chat message = Chat(
                                     user: appProvider.currentUser,
                                     message: _messageController.text,
-                                    messageTypes: MessageTypes.UserMessage);
+                                    messageType: MessageType.UserMessage);
                                 _socketIOService.sendNewMessage(
                                     roomId: model.roomId, message: message);
                                 model.addMessage(message);
@@ -231,14 +234,9 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
             shrinkWrap: true,
             itemCount: model.messages.length,
             itemBuilder: (BuildContext context, int index) {
-              return index != 0 && index % 5 == 0
-                  ? ChatCard(
+              return ChatCard(
                       message: model.messages[index],
-                      isCorrect: true,
-                    )
-                  : ChatCard(
-                      message: model.messages[index],
-                      isCorrect: false,
+                      isCorrect: model.messages[index].messageType == MessageType.PointsGained,
                     );
             },
           )
@@ -272,6 +270,7 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
       shrinkWrap: true,
       itemCount: model.players.length,
       itemBuilder: (BuildContext context, int index) {
+        Player player = model.players[index];
         return Padding(
           padding: const EdgeInsets.all(8.0),
           child: Row(
@@ -290,8 +289,8 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
                           fit: BoxFit.cover),
                     ),
                   ),
-                  Text(model.players[index].username),
-                  Text('100')
+                  Text(player.user.username),
+                  Text('${player.score}')
                 ],
               ),
             ],

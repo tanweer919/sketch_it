@@ -9,6 +9,7 @@ import '../widgets/ShareRoomModal.dart';
 import '../models/User.dart';
 import '../Providers/RoomProvider.dart';
 import '../widgets/GameView.dart';
+import '../models/Player.dart';
 
 class GameScreen extends StatefulWidget {
   final String roomId;
@@ -29,18 +30,30 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     _roomProvider = locator<RoomProvider>(param1: {
       "roomId": widget.roomId,
       "players": widget.initialRoomData["players"]
-          .map<User>(
-            (player) => User(
-              username: player["username"],
+          .map<Player>(
+            (player) => Player(
+              user: User(
+                username: player["user"]["username"],
+              ),
+              score: player["score"],
             ),
           )
           .toList(),
       "messages": widget.initialRoomData["messages"]
           .map<Chat>((message) => Chat.fromJson(message))
           .toList(),
-      "sketcher":
-          User(username: widget.initialRoomData["sketcher"]["username"]),
-      "admin": User(username: widget.initialRoomData["sketcher"]["username"]),
+      "sketcher": Player(
+        user: User(
+          username: widget.initialRoomData["sketcher"]["user"]["username"],
+        ),
+        score: widget.initialRoomData["sketcher"]["score"],
+      ),
+      "admin": Player(
+        user: User(
+          username: widget.initialRoomData["admin"]["user"]["username"],
+        ),
+        score: widget.initialRoomData["admin"]["score"],
+      ),
       "status": widget.initialRoomData["status"],
       "gameStatus": GameStatus.values[widget.initialRoomData["gameStatus"]]
     });
