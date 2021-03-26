@@ -314,6 +314,7 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
   }
 
   void _onRoomCreated(bool success, Map<String, dynamic> data) {
+    print(data);
     if (success) {
       setState(() {
         _inProgress = false;

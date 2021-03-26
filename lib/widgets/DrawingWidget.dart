@@ -33,10 +33,12 @@ class DrawingWidget extends StatefulWidget {
   _DrawingWidgetState createState() => _DrawingWidgetState();
 }
 
-class _DrawingWidgetState extends State<DrawingWidget> {
+class _DrawingWidgetState extends State<DrawingWidget>
+    with SingleTickerProviderStateMixin {
   Socket socket;
   SocketIOService _socketIOService = locator<SocketIOService>();
   List<Widget> options;
+  AnimationController _gameBannerAnimationController;
   bool _editOptionSelected = false;
   bool _showMenuIcon = true;
   bool _animatingMenuBackward = false;
@@ -51,10 +53,15 @@ class _DrawingWidgetState extends State<DrawingWidget> {
       BackgroundColorSelector(),
       StrokeWidthSlider()
     ];
+    _gameBannerAnimationController =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 300));
 
     _gameStreamSubscription = _socketStream.gameStream.listen(
       (data) {
         if (data["action"] == GameAction.StartDrawing) {
+          setState(() {
+            seconds = 60;
+          });
           _secondsLeftToDrawTimer = Timer.periodic(
             Duration(seconds: 1),
             (timer) {
@@ -68,7 +75,20 @@ class _DrawingWidgetState extends State<DrawingWidget> {
             },
           );
         }
-        if (data["action"] == GameAction.StartTurn) {}
+        if (data["action"] == GameAction.EndTurn ||
+            data["action"] == GameAction.SkipTurn) {
+          if(_secondsLeftToDrawTimer != null) {
+            _secondsLeftToDrawTimer.cancel();
+          }
+          _socketStream.clearDrawing();
+          _gameBannerAnimationController.forward();
+        }
+        if (data["action"] == GameAction.StartTurn) {
+          if (_gameBannerAnimationController.isCompleted) {
+            _gameBannerAnimationController.animateTo(2.0);
+            _gameBannerAnimationController.reset();
+          }
+        }
       },
     );
     super.initState();
@@ -300,7 +320,17 @@ class _DrawingWidgetState extends State<DrawingWidget> {
                             )
                           ],
                   ),
-                )
+                ),
+              AnimatedBuilder(
+                animation: _gameBannerAnimationController,
+                builder: (context, child) => Transform.translate(
+                  offset: Offset(
+                      -MediaQuery.of(context).size.width *
+                          (1 - _gameBannerAnimationController.value),
+                      0),
+                  child: gameBanner(text: roomModel.bannerText),
+                ),
+              ),
             ],
           ),
         ),
@@ -417,6 +447,67 @@ class _DrawingWidgetState extends State<DrawingWidget> {
                       )
                     ],
                   ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget gameBanner({String text}) {
+    return Container(
+      height: widget.canvasHeight,
+      width: widget.canvasWidth,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            height: 140,
+            decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+                borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 3,
+                    blurRadius: 3,
+                    offset: Offset(0, 3), // changes position of shadow
+                  ),
+                ]),
+            width: MediaQuery.of(context).size.width,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 30,
+                    ),
+                    Flexible(
+                      fit: FlexFit.loose,
+                      child: Text(
+                        text,
+                        style: TextStyle(
+                          fontSize: 16,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: LinearProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xff3366ff),
+                        ),
+                        backgroundColor: Theme.of(context).primaryColor,
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),

@@ -99,6 +99,17 @@ class SocketIOService {
       socket.on(GAME_STARTED, (data) {
         _socketStream.changeGameStatus(GameStatus.Started);
       },);
+
+      socket.on(END_TURN, (data) {
+        print(data);
+        _socketStream.endTurn(data["message"]);
+      });
+
+      socket.on(SKIP_TURN, (data) {
+        print(data);
+        _socketStream.skipTurn(data["message"]);
+      });
+
       socket.on(NEXT_TURN, (data) {
         _socketStream.startTurn(data["username"]);
       });
@@ -119,6 +130,15 @@ class SocketIOService {
 
       socket.on(START_DRAWING, (data) {
         _socketStream.startDrawing();
+      });
+
+      socket.on(END_GAME, (data) {
+        _socketStream.endGame(data["message"]);
+      });
+
+      socket.on(CHANGE_ADMIN, (data) {
+        String username = data["username"];
+        _socketStream.changeAdmin(username);
       });
 
       socket.on(CONNECT_ERROR, (data) {

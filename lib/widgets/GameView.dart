@@ -17,6 +17,7 @@ import '../services/SocketStream.dart';
 import '../models/PictionaryWord.dart';
 import '../widgets/WordSelectionPanel.dart';
 import '../models/Player.dart';
+import '../widgets/FinalScoreboard.dart';
 
 class GameView extends StatefulWidget {
   @override
@@ -59,7 +60,7 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
         text: 'Chats',
       ),
       new Tab(
-        text: 'Players',
+        text: 'Scoreboard',
       )
     ]);
     _wordSelectionTimerAnimationController = AnimationController(
@@ -69,17 +70,26 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
     _gameStreamSubscription = _socketStream.gameStream.listen((data) {
       if (data["action"] == GameAction.WordSelection) {
         final List<PictionaryWord> pictionaryWords = data["words"];
-        roomProvider.slidingPanelChild =
-            WordSelectionPanel(words: pictionaryWords, animationController: _wordSelectionTimerAnimationController,);
+        roomProvider.slidingPanelChild = WordSelectionPanel(
+          words: pictionaryWords,
+          animationController: _wordSelectionTimerAnimationController,
+        );
         _slidingAnimationController.forward();
         _wordSelectionTimerAnimationController.reverse(from: 100.0);
       }
-      if(data["action"] == GameAction.StartDrawing) {
-        if(_slidingAnimationController.isCompleted) {
+      if (data["action"] == GameAction.StartDrawing ||
+          data["action"] == GameAction.SkipTurn) {
+        if (_slidingAnimationController.isCompleted) {
           _slidingAnimationController.reverse();
         }
       }
-      if(data["action"] == GameAction.StartTurn) {
+
+      if (data["action"] == GameAction.EndGame) {
+        List<Player> players = roomProvider.players;
+        roomProvider.slidingPanelChild = FinalScoreboard(
+          players: players,
+        );
+        _slidingAnimationController.forward();
       }
     });
     _tabController = new TabController(vsync: this, length: _tabList.length);
@@ -112,7 +122,7 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
                     Container(
                       width: MediaQuery.of(context).size.width,
                       height: MediaQuery.of(context).size.height * 0.05,
-                      color: Theme.of(context).primaryColor,
+                      color: Color(0xff3366ff),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -135,6 +145,8 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
                       color: Theme.of(context).accentColor,
                       child: TextField(
                         controller: _messageController,
+                        enabled: !(model.currentSketcher.user.username ==
+                            appProvider.currentUser.username),
                         cursorColor: Colors.white,
                         style: TextStyle(color: Colors.white),
                         decoration: InputDecoration(
@@ -147,14 +159,7 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
                                     messageType: MessageType.UserMessage);
                                 _socketIOService.sendNewMessage(
                                     roomId: model.roomId, message: message);
-                                model.addMessage(message);
                                 _messageController.text = '';
-                                _chatScrollController.animateTo(
-                                    _chatScrollController
-                                            .position.maxScrollExtent +
-                                        40,
-                                    duration: Duration(milliseconds: 200),
-                                    curve: Curves.easeOut);
                               }
                             },
                             child: Icon(
@@ -218,7 +223,7 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
             Expanded(
               child: TabBarView(
                 controller: _tabController,
-                children: [chatsTab(model: model), playersTab(model: model)],
+                children: [chatsTab(model: model), scoresTab(model: model)],
               ),
             )
           ],
@@ -235,9 +240,10 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
             itemCount: model.messages.length,
             itemBuilder: (BuildContext context, int index) {
               return ChatCard(
-                      message: model.messages[index],
-                      isCorrect: model.messages[index].messageType == MessageType.PointsGained,
-                    );
+                message: model.messages[index],
+                isCorrect: model.messages[index].messageType ==
+                    MessageType.PointsGained,
+              );
             },
           )
         : Container(
@@ -265,7 +271,7 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
           );
   }
 
-  Widget playersTab({@required RoomProvider model}) {
+  Widget scoresTab({@required RoomProvider model}) {
     return ListView.builder(
       shrinkWrap: true,
       itemCount: model.players.length,
@@ -276,22 +282,48 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 20.0,
-                    height: 20.0,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                          image:
-                              AssetImage('assets/images/user_placeholder.jpg'),
-                          fit: BoxFit.cover),
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          '${index + 1}.',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 2.0, right: 2.0),
+                          child: Container(
+                            width: 30.0,
+                            height: 30.0,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              image: DecorationImage(
+                                  image: AssetImage(
+                                      'assets/images/user_placeholder.jpg'),
+                                  fit: BoxFit.cover),
+                            ),
+                          ),
+                        ),
+                        Text(
+                          player.user.username,
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      ],
                     ),
-                  ),
-                  Text(player.user.username),
-                  Text('${player.score}')
-                ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text(
+                        '${player.score}',
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.w500),
+                      ),
+                    )
+                  ],
+                ),
               ),
             ],
           ),

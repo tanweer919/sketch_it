@@ -20,9 +20,11 @@ class RoomProvider extends ChangeNotifier {
   SocketStream _socketStream = locator<SocketStream>();
   GameStatus _gameStatus;
   Widget _slidingPanelChild;
+  String _bannerText;
   RoomProvider(
       this._room, this._status, this._gameStatus, this._currentSketcher) {
     this._slidingPanelChild = Container();
+    this._bannerText = "";
     _messageStreamSubscription = _socketStream.messageStream.listen((message) {
       this.addMessage(message);
     });
@@ -47,8 +49,17 @@ class RoomProvider extends ChangeNotifier {
         final String currentSketcher = data["sketcher"];
         this.setSketcher(currentSketcher);
       }
-      if(data["action"] == GameAction.AddPoints) {
+      if (data["action"] == GameAction.AddPoints) {
         this.setScore(data["username"], data["points"]);
+      }
+      if (data["action"] == GameAction.EndTurn ||
+          data["action"] == GameAction.SkipTurn || data["action"] == GameAction.EndGame) {
+        final String message = data["message"];
+        this._bannerText = message;
+      }
+      if(data["action"] == GameAction.ChangeAdmin) {
+        final String username = data["username"];
+        this.changeAdmin(username);
       }
     });
   }
@@ -68,6 +79,8 @@ class RoomProvider extends ChangeNotifier {
   GameStatus get gameStatus => _gameStatus;
 
   Widget get slidingPanelChild => _slidingPanelChild;
+
+  String get bannerText => _bannerText;
 
   void set messages(List<Chat> newMessages) {
     _room.messages = newMessages;
@@ -94,6 +107,11 @@ class RoomProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void set bannerText(String text) {
+    _bannerText = text;
+    notifyListeners();
+  }
+
   void addMessage(Chat message) {
     _room.messages.add(message);
     notifyListeners();
@@ -105,8 +123,8 @@ class RoomProvider extends ChangeNotifier {
   }
 
   void setSketcher(String sketcherUsername) {
-    int index =
-    _room.players.indexWhere((player) => player.user.username == sketcherUsername);
+    int index = _room.players
+        .indexWhere((player) => player.user.username == sketcherUsername);
     if (index != -1) {
       _currentSketcher = _room.players[index];
       notifyListeners();
@@ -115,9 +133,20 @@ class RoomProvider extends ChangeNotifier {
 
   void setScore(String username, int points) {
     int index =
-    _room.players.indexWhere((player) => player.user.username == username);
+        _room.players.indexWhere((player) => player.user.username == username);
     if (index != -1) {
       _room.players[index].score += points;
+      _room.players.sort((a, b) => b.score.compareTo(a.score));
+      notifyListeners();
+    }
+  }
+
+  void changeAdmin(String username) {
+    print("======Change Admin ${username}=========");
+    int index =
+    _room.players.indexWhere((player) => player.user.username == username);
+    if(index != -1) {
+      _room.admin = _room.players[index].user;
       notifyListeners();
     }
   }

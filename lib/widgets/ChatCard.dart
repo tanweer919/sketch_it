@@ -13,7 +13,8 @@ class ChatCard extends StatelessWidget {
     MessageType.UserMessage: Icons.edit,
     MessageType.JoinedRoom: CustomIcons.enter_room,
     MessageType.LeftRoom: CustomIcons.leave_room,
-    MessageType.PointsGained: Icons.celebration
+    MessageType.PointsGained: Icons.celebration,
+    MessageType.InfoMessage: Icons.info_outline
   };
 
   @override
@@ -55,7 +56,8 @@ class ChatCard extends StatelessWidget {
       MessageType.UserMessage: '${username}: ',
       MessageType.JoinedRoom: '${username} has joined the room',
       MessageType.LeftRoom: '${username} has left the room',
-      MessageType.PointsGained: message.message
+      MessageType.PointsGained: message.message,
+      MessageType.InfoMessage: message.message
     };
     return RichText(
       text: TextSpan(
