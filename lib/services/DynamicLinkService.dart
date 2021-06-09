@@ -17,7 +17,7 @@ class DynamicLinkService {
     _handleDeepLink(data);
     FirebaseDynamicLinks.instance.onLink(
         onSuccess: (PendingDynamicLinkData data) async {
-      await _handleDeepLink(data);
+      _handleDeepLink(data);
     }, onError: (OnLinkErrorException e) async {
       print('Link failed: ${e.message}');
     });
@@ -50,7 +50,7 @@ class DynamicLinkService {
     final DynamicLinkParameters parameters = DynamicLinkParameters(
       uriPrefix: 'https://app.justsketch.in',
       link: Uri.parse(
-          'https://app.justsketch.in/join?key=roomId&value=${roomId}'),
+          'https://app.justsketch.in/join?key=roomId&value=$roomId'),
       androidParameters: AndroidParameters(
         packageName: 'com.just_sketch',
       ),
@@ -66,7 +66,7 @@ class DynamicLinkService {
       ),
     );
     final ShortDynamicLink shortDynamicLink = await parameters.buildShortLink();
-    final Uri dynamicUrl = await shortDynamicLink.shortUrl;
+    final Uri dynamicUrl = shortDynamicLink.shortUrl;
 
     return dynamicUrl.toString();
   }

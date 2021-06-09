@@ -30,15 +30,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   HttpOverrides.global = new MyHttpOverrides();
   Firebase.initializeApp();
-  await setupLocator();
+  setupLocator();
   UserService _userService = locator<UserService>();
   final User currentUser = await _userService.fetchCurrentUser();
   final AppProvider _appProvider = locator<AppProvider>(param1: currentUser);
   final DynamicLinkService _dynamicLinkService = locator<DynamicLinkService>();
-  final SocketIOService _socketIOService = locator<SocketIOService>();
   RouterService _routerService = locator<RouterService>();
   await _dynamicLinkService.handleDynamicLinks();
-  _socketIOService.connectToServer();
 
   runApp(ChangeNotifierProvider(
     create: (context) => _appProvider,

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/Player.dart';
 import '../commons/LargeYellowButton.dart';
 import '../Providers/AppProvider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class FinalScoreboard extends StatelessWidget {
   final List<Player> players;
@@ -31,9 +32,9 @@ class FinalScoreboard extends StatelessWidget {
                 itemCount: players.length,
                 itemBuilder: (BuildContext context, int index) {
                   Player player = players[index];
-                  if (players.length > 0) {
+                  if (players.length > 3) {
                     if (index < 3) {
-                      if(index == 1 || index == 2) {
+                      if (index == 1 || index == 2) {
                         return Container();
                       }
                       return Padding(
@@ -51,37 +52,58 @@ class FinalScoreboard extends StatelessWidget {
                                     height: 20,
                                   ),
                                   Container(
-                                    width: 50.0,
-                                    height: 50.0,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      image: DecorationImage(
-                                          image: AssetImage(
-                                              'assets/images/user_placeholder.jpg'),
-                                          fit: BoxFit.cover),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(2.0),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                    height: 65,
+                                    width: 50,
+                                    child: Stack(
                                       children: [
-                                        Text(
-                                          '${players[1].user.username}',
-                                          style: TextStyle(fontSize: 22),
-                                        ),
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(left: 2.0),
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(30),
+                                          ),
                                           child: Container(
-                                            height: 35,
-                                            width: 35,
+                                            width: 50.0,
+                                            height: 50.0,
+                                            child: players[1].user.profilePicUrl != null
+                                                ? CachedNetworkImage(
+                                                    imageUrl:
+                                                        players[1].user.profilePicUrl,
+                                                    fit: BoxFit.cover,
+                                                    placeholder: (context, url) =>
+                                                        Image.asset(
+                                                      'assets/images/user_placeholder.jpg',
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                  )
+                                                : Image.asset(
+                                                    'assets/images/user_placeholder.jpg',
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                          ),
+                                        ),
+                                        Align(
+                                          alignment: Alignment.bottomCenter,
+                                          child: Container(
+                                            height: 30,
+                                            width: 30,
                                             child: Image.asset(
                                               'assets/images/silver_medal.png',
                                               fit: BoxFit.contain,
                                             ),
                                           ),
                                         )
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(2.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '${players[1].user.username}',
+                                          style: TextStyle(fontSize: 18),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -99,37 +121,58 @@ class FinalScoreboard extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Container(
-                                    width: 50.0,
-                                    height: 50.0,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      image: DecorationImage(
-                                          image: AssetImage(
-                                              'assets/images/user_placeholder.jpg'),
-                                          fit: BoxFit.cover),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(2.0),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                    height: 65,
+                                    width: 50,
+                                    child: Stack(
                                       children: [
-                                        Text(
-                                          '${players[0].user.username}',
-                                          style: TextStyle(fontSize: 22),
-                                        ),
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(left: 2.0),
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(30),
+                                          ),
                                           child: Container(
-                                            height: 35,
-                                            width: 35,
+                                            width: 50.0,
+                                            height: 50.0,
+                                            child: players[0].user.profilePicUrl != null
+                                                ? CachedNetworkImage(
+                                                    imageUrl:
+                                                        players[0].user.profilePicUrl,
+                                                    fit: BoxFit.cover,
+                                                    placeholder: (context, url) =>
+                                                        Image.asset(
+                                                      'assets/images/user_placeholder.jpg',
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                  )
+                                                : Image.asset(
+                                                    'assets/images/user_placeholder.jpg',
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                          ),
+                                        ),
+                                        Align(
+                                          alignment: Alignment.bottomCenter,
+                                          child: Container(
+                                            height: 30,
+                                            width: 30,
                                             child: Image.asset(
                                               'assets/images/gold_medal.png',
                                               fit: BoxFit.contain,
                                             ),
                                           ),
                                         )
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(2.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '${players[0].user.username}',
+                                          style: TextStyle(fontSize: 18),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -150,37 +193,58 @@ class FinalScoreboard extends StatelessWidget {
                                     height: 20,
                                   ),
                                   Container(
-                                    width: 50.0,
-                                    height: 50.0,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      image: DecorationImage(
-                                          image: AssetImage(
-                                              'assets/images/user_placeholder.jpg'),
-                                          fit: BoxFit.cover),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(2.0),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                    height: 65,
+                                    width: 50,
+                                    child: Stack(
                                       children: [
-                                        Text(
-                                          '${players[2].user.username}',
-                                          style: TextStyle(fontSize: 22),
-                                        ),
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(left: 2.0),
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(30),
+                                          ),
                                           child: Container(
-                                            height: 35,
-                                            width: 35,
+                                            width: 50.0,
+                                            height: 50.0,
+                                            child: players[2].user.profilePicUrl != null
+                                                ? CachedNetworkImage(
+                                                    imageUrl:
+                                                        players[2].user.profilePicUrl,
+                                                    fit: BoxFit.cover,
+                                                    placeholder: (context, url) =>
+                                                        Image.asset(
+                                                      'assets/images/user_placeholder.jpg',
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                  )
+                                                : Image.asset(
+                                                    'assets/images/user_placeholder.jpg',
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                          ),
+                                        ),
+                                        Align(
+                                          alignment: Alignment.bottomCenter,
+                                          child: Container(
+                                            height: 30,
+                                            width: 30,
                                             child: Image.asset(
                                               'assets/images/bronze_medal.png',
                                               fit: BoxFit.contain,
                                             ),
                                           ),
                                         )
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(2.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '${players[2].user.username}',
+                                          style: TextStyle(fontSize: 18),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -196,8 +260,7 @@ class FinalScoreboard extends StatelessWidget {
                           ],
                         ),
                       );
-                    }
-                    else {
+                    } else {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: Row(
@@ -205,11 +268,13 @@ class FinalScoreboard extends StatelessWidget {
                           children: [
                             Expanded(
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     children: [
                                       Text(
                                         '${index < 9 ? '0' : ''}${index + 1}.',
@@ -218,15 +283,24 @@ class FinalScoreboard extends StatelessWidget {
                                       Padding(
                                         padding: const EdgeInsets.only(
                                             left: 2.0, right: 4.0),
-                                        child: Container(
-                                          width: 30.0,
-                                          height: 30.0,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            image: DecorationImage(
-                                                image: AssetImage(
-                                                    'assets/images/user_placeholder.jpg'),
-                                                fit: BoxFit.cover),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.all(Radius.circular(30),),
+                                          child: Container(
+                                            width: 30.0,
+                                            height: 30.0,
+                                            child: player.user.profilePicUrl != null
+                                                ? CachedNetworkImage(
+                                              imageUrl: player.user.profilePicUrl,
+                                              fit: BoxFit.cover,
+                                              placeholder: (context, url) => Image.asset(
+                                                'assets/images/user_placeholder.jpg',
+                                                fit: BoxFit.cover,
+                                              ),
+                                            )
+                                                : Image.asset(
+                                              'assets/images/user_placeholder.jpg',
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -274,15 +348,24 @@ class FinalScoreboard extends StatelessWidget {
                                     Padding(
                                       padding: const EdgeInsets.only(
                                           left: 2.0, right: 4.0),
-                                      child: Container(
-                                        width: 30.0,
-                                        height: 30.0,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          image: DecorationImage(
-                                              image: AssetImage(
-                                                  'assets/images/user_placeholder.jpg'),
-                                              fit: BoxFit.cover),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.all(Radius.circular(30),),
+                                        child: Container(
+                                          width: 30.0,
+                                          height: 30.0,
+                                          child: player.user.profilePicUrl != null
+                                              ? CachedNetworkImage(
+                                            imageUrl: player.user.profilePicUrl,
+                                            fit: BoxFit.cover,
+                                            placeholder: (context, url) => Image.asset(
+                                              'assets/images/user_placeholder.jpg',
+                                              fit: BoxFit.cover,
+                                            ),
+                                          )
+                                              : Image.asset(
+                                            'assets/images/user_placeholder.jpg',
+                                            fit: BoxFit.cover,
+                                          ),
                                         ),
                                       ),
                                     ),

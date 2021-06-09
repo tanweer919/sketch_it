@@ -107,7 +107,7 @@ class ShareRoomModal extends StatelessWidget {
                         Expanded(
                           child: Center(
                             child: Text(
-                              '${roomId}',
+                              '$roomId',
                               style:
                                   TextStyle(fontSize: 18, color: Colors.white),
                             ),

@@ -5,6 +5,7 @@ import 'package:flare_flutter/provider/asset_flare.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' as FirebaseAuth;
 import '../widgets/WaveClipPath.dart';
 import '../widgets/SmallerWaveClipPath.dart';
 import '../services/GetItLocator.dart';
@@ -13,6 +14,8 @@ import '../services/FlushbarHelper.dart';
 import '../services/LocalStorageService.dart';
 import '../Providers/AppProvider.dart';
 import '../models/User.dart';
+import '../services/FirebaseAuthService.dart';
+import '../services/SocketIOService.dart';
 
 class IntroductionScreen extends StatefulWidget {
   @override
@@ -20,32 +23,32 @@ class IntroductionScreen extends StatefulWidget {
 }
 
 class _IntroductionScreenState extends State<IntroductionScreen> {
-  String _animation = "idle";
+  String _animation = "draw_hexagon";
   Future<void> _warmupAnimations(AssetProvider assetProvider) async {
     await cachedActor(assetProvider);
   }
 
   final UserService _userService = locator<UserService>();
+  final FirebaseAuthService _firebaseAuthService =
+      locator<FirebaseAuthService>();
   final LocalStorageService _localStorage = locator<LocalStorageService>();
-  bool _checkInProgress = false;
-  bool _registerInProgress = false;
-  bool usernameAvailable;
-  TextEditingController _usernameFieldController = TextEditingController();
+  final SocketIOService _socketIOService = locator<SocketIOService>();
+  bool _loginInProgress = false;
 
   @override
   void initState() {
     final AssetProvider assetProvider =
-        AssetFlare(bundle: rootBundle, name: 'assets/rive/Teddy.flr');
+        AssetFlare(bundle: rootBundle, name: 'assets/rive/draw.flr');
     _warmupAnimations(assetProvider);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    final AppProvider _appProvider = Provider.of<AppProvider>(context);
+    final AppProvider appProvider = Provider.of<AppProvider>(context);
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Color(0xff5D8E9B),
+        backgroundColor: Colors.white,
         body: SingleChildScrollView(
           child: Container(
             child: Column(
@@ -96,9 +99,9 @@ class _IntroductionScreenState extends State<IntroductionScreen> {
                     child: Column(
                       children: [
                         Container(
-                          height: MediaQuery.of(context).size.height * 0.25,
+                          height: MediaQuery.of(context).size.height * 0.35,
                           child: FlareActor(
-                            "assets/rive/Teddy.flr",
+                            "assets/rive/draw.flr",
                             alignment: Alignment.center,
                             fit: BoxFit.contain,
                             animation: _animation,
@@ -106,207 +109,131 @@ class _IntroductionScreenState extends State<IntroductionScreen> {
                           ),
                         ),
                         Padding(
-                          padding: EdgeInsets.only(
-                              left: 16.0,
-                              right: 16.0,
-                              bottom: MediaQuery.of(context).viewInsets.bottom),
-                          child: Container(
-                            decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(20))),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                        left: 16.0, right: 16.0, top: 16.0),
-                                    child: TextField(
-                                      controller: _usernameFieldController,
-                                      decoration: InputDecoration(
-                                          hintText: 'Choose a username',
-                                          labelText: 'Username',
-                                          suffixIcon: usernameAvailable !=
-                                                      null &&
-                                                  usernameAvailable != ''
-                                              ? UnconstrainedBox(
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            top: 8.0),
-                                                    child: _checkInProgress
-                                                        ? Container(
-                                                            height: 15,
-                                                            width: 15,
-                                                            child: Center(
-                                                                child:
-                                                                    CircularProgressIndicator(
-                                                              strokeWidth: 2.0,
-                                                            )),
-                                                          )
-                                                        : usernameAvailable
-                                                            ? CircleAvatar(
-                                                                maxRadius: 10,
-                                                                backgroundColor:
-                                                                    Color(
-                                                                        0xff4ca746),
-                                                                child: Icon(
-                                                                  Icons.check,
-                                                                  size: 13,
-                                                                  color: Colors
-                                                                      .white,
-                                                                ),
-                                                              )
-                                                            : CircleAvatar(
-                                                                maxRadius: 10,
-                                                                backgroundColor:
-                                                                    Colors.red,
-                                                                child: Icon(
-                                                                  Icons.clear,
-                                                                  size: 13,
-                                                                  color: Colors
-                                                                      .white,
-                                                                ),
-                                                              ),
-                                                  ),
-                                                )
-                                              : Container(
-                                                  width: 0,
-                                                )),
-                                      onChanged: (value) async {
-                                        if (value != '') {
+                          padding: EdgeInsets.all(4.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Container(
+                                width: MediaQuery.of(context).size.width * 0.5,
+                                child: ElevatedButton(
+                                  onPressed: !_loginInProgress
+                                      ? () async {
                                           setState(() {
-                                            _animation = "test";
-                                            _checkInProgress = true;
+                                            _loginInProgress = true;
                                           });
-                                          final userRepsonse =
-                                              await _userService.checkUsername(
-                                                  username: value);
-
-                                          if (userRepsonse["available"]) {
-                                            setState(() {
-                                              usernameAvailable = true;
-                                            });
+                                          final FirebaseAuth.User user =
+                                              await _firebaseAuthService
+                                                  .signInWithGoogle();
+                                          final result =
+                                              await _userService.checkUser(
+                                                  firebaseToken: user.uid);
+                                          final bool success =
+                                              result['success'];
+                                          if (success) {
+                                            final bool registered =
+                                                result['registered'];
+                                            if (registered) {
+                                              final String username =
+                                                  result['username'];
+                                              _localStorage.setString(
+                                                  'username', username);
+                                              appProvider.currentUser = User(
+                                                  username: username,
+                                                  email: user.email,
+                                                  profilePicUrl: user.photoURL);
+                                              _socketIOService.connectToServer();
+                                              Navigator.of(context)
+                                                  .pushReplacementNamed(
+                                                      '/home');
+                                            } else {
+                                              Navigator.of(context)
+                                                  .pushReplacementNamed(
+                                                '/username',
+                                                arguments: {
+                                                  "googleLoginUsed": true,
+                                                  "firebaseToken": user.uid,
+                                                  "email": user.email,
+                                                  "profilePicUrl": user.photoURL
+                                                },
+                                              );
+                                            }
                                           } else {
-                                            setState(() {
-                                              usernameAvailable = false;
-                                            });
+                                            FlushbarAlert.showAlert(
+                                                context: context,
+                                                title: 'Error',
+                                                message: result["message"],
+                                                seconds: 3);
                                           }
-                                          setState(() {
-                                            _checkInProgress = false;
-                                          });
-                                        } else {
-                                          setState(() {
-                                            _animation = "idle";
-                                          });
                                         }
-                                      },
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: 16.0,
-                                      right: 16.0,
-                                      bottom: 8.0,
-                                    ),
-                                    child: Container(
-                                      height: 20,
-                                      child: usernameAvailable == false
-                                          ? Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Username is already taken.',
-                                                  style: TextStyle(
-                                                    color: Colors.red,
-                                                    fontSize: 12,
-                                                  ),
-                                                ),
-                                              ],
-                                            )
-                                          : Container(),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12.0, vertical: 8.0),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: ButtonTheme(
-                                            height: 50,
-                                            child: RaisedButton(
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    new BorderRadius.circular(
-                                                        30.0),
-                                              ),
-                                              color: Color(0xfff6b643),
-                                              child: Padding(
+                                      : () {},
+                                  child: _loginInProgress
+                                      ? CircularProgressIndicator(
+                                          valueColor:
+                                              new AlwaysStoppedAnimation<Color>(
+                                                  Color(0xfff5f5f5)),
+                                        )
+                                      : Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: <Widget>[
+                                            Container(
+                                                color: Colors.white,
+                                                height: 30,
+                                                child: Padding(
                                                   padding:
                                                       const EdgeInsets.all(8.0),
-                                                  child: _registerInProgress
-                                                      ? CircularProgressIndicator(
-                                                          valueColor:
-                                                              new AlwaysStoppedAnimation<
-                                                                      Color>(
-                                                                  Colors.black),
-                                                        )
-                                                      : Text('Continue')),
-                                              onPressed: _registerInProgress
-                                                  ? () {}
-                                                  : () async {
-                                                      final username =
-                                                          _usernameFieldController
-                                                              .text;
-                                                      if (username != '' &&
-                                                          usernameAvailable) {
-                                                        setState(() {
-                                                          _registerInProgress =
-                                                              true;
-                                                        });
-                                                        final result =
-                                                            await _userService
-                                                                .createUser(
-                                                                    username:
-                                                                        username);
-                                                        setState(() {
-                                                          _registerInProgress =
-                                                              false;
-                                                        });
-                                                        if (result["success"]) {
-                                                          _localStorage
-                                                              .setString(
-                                                                  'username',
-                                                                  username);
-                                                          _appProvider
-                                                                  .currentUser =
-                                                              User(
-                                                                  username:
-                                                                      username);
-                                                          Navigator.of(context)
-                                                              .pushReplacementNamed(
-                                                                  '/home');
-                                                        } else {
-                                                          FlushbarAlert.showAlert(
-                                                              context: context,
-                                                              title: 'Error',
-                                                              message: result[
-                                                                  "message"],
-                                                              seconds: 3);
-                                                        }
-                                                      }
-                                                    },
-                                            ),
-                                          ),
+                                                  child: Image.asset(
+                                                      'assets/images/google_logo.png'),
+                                                )),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Text(
+                                                'Sign in with Google',
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                              ),
+                                            )
+                                          ],
                                         ),
-                                      ],
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                      Color(0xff4285f4),
+                                    ),
+                                    padding: MaterialStateProperty.all<
+                                        EdgeInsetsGeometry>(
+                                      EdgeInsets.symmetric(horizontal: 4.0),
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pushReplacementNamed(
+                              '/username',
+                              arguments: {
+                                "googleLoginUsed": false,
+                                "firebaseToken": null,
+                                "email": null,
+                                "profilePicUrl": null
+                              },
+                            );
+                          },
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                Theme.of(context).primaryColor),
+                          ),
+                          child: Text(
+                            'Continue as guest',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.white,
                             ),
                           ),
                         )

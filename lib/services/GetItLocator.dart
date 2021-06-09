@@ -13,6 +13,7 @@ import '../Providers/AppProvider.dart';
 import '../models/User.dart';
 import '../Providers/RoomProvider.dart';
 import '../models/Room.dart';
+import '../services/FirebaseAuthService.dart';
 
 GetIt locator = GetIt.instance;
 
@@ -26,6 +27,7 @@ void setupLocator() {
       .registerLazySingleton<LocalStorageService>(() => LocalStorageService());
   locator.registerLazySingleton<UserService>(() => UserService());
   locator.registerLazySingleton<RoomService>(() => RoomService());
+  locator.registerLazySingleton<FirebaseAuthService>(() => FirebaseAuthService());
   locator
       .registerFactoryParam<PaintProvider, List<Point>, Map<String, dynamic>>(
     (points, options) => PaintProvider(

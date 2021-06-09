@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flare_flutter/flare_actor.dart';
 import 'package:flutter/material.dart';
 import 'package:just_sketch/Providers/AppProvider.dart';
 import 'package:provider/provider.dart';
@@ -46,6 +47,7 @@ class _DrawingWidgetState extends State<DrawingWidget>
   SocketStream _socketStream = locator<SocketStream>();
   StreamSubscription _gameStreamSubscription;
   int seconds = 60;
+  bool _shareRoomButtonPressed = false;
   @override
   void initState() {
     options = [
@@ -77,7 +79,7 @@ class _DrawingWidgetState extends State<DrawingWidget>
         }
         if (data["action"] == GameAction.EndTurn ||
             data["action"] == GameAction.SkipTurn) {
-          if(_secondsLeftToDrawTimer != null) {
+          if (_secondsLeftToDrawTimer != null) {
             _secondsLeftToDrawTimer.cancel();
           }
           _socketStream.clearDrawing();
@@ -210,20 +212,7 @@ class _DrawingWidgetState extends State<DrawingWidget>
                         borderRadius: BorderRadius.all(Radius.circular(30.0)),
                         child: InkWell(
                           onTap: () {
-                            showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (BuildContext context) => Dialog(
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(16)),
-                                      elevation: 0,
-                                      backgroundColor: Colors.white,
-                                      child: ShareRoomModal(
-                                        roomId: roomModel.roomId,
-                                        roomCreated: false,
-                                      ),
-                                    ));
+                            showShareRoomModal(roomModel: roomModel);
                           },
                           child: Container(
                             height: 50,
@@ -268,7 +257,7 @@ class _DrawingWidgetState extends State<DrawingWidget>
               if (roomModel.gameStatus == GameStatus.NotStarted)
                 Container(
                   height: widget.canvasHeight,
-                  width: widget.canvasWidth,
+                  width: MediaQuery.of(context).size.width,
                   color: Color(0X70000000),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -289,21 +278,43 @@ class _DrawingWidgetState extends State<DrawingWidget>
                                 ),
                               ),
                             ),
-                            if (roomModel.players.length > 1)
-                              LargeButton(
-                                buttonPressed: false,
-                                onTap: () {
-                                  _socketIOService.startGame(
-                                      roomId: roomModel.roomId,
-                                      username: player.username);
-                                },
-                                width: MediaQuery.of(context).size.width * 0.6,
-                                child: Text(
-                                  'Start the game',
-                                  style: TextStyle(
-                                      fontSize: 18, color: Colors.white),
-                                ),
-                              ),
+                            (roomModel.players.length > 1)
+                                ? LargeButton(
+                                    buttonPressed: false,
+                                    onTap: () {
+                                      _socketIOService.startGame(
+                                          roomId: roomModel.roomId,
+                                          username: player.username);
+                                    },
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.6,
+                                    child: Text(
+                                      'Start the game',
+                                      style: TextStyle(
+                                          fontSize: 18, color: Colors.white),
+                                    ),
+                                  )
+                                : LargeButton(
+                                    buttonPressed: _shareRoomButtonPressed,
+                                    onTap: () {
+                                      setState(() {
+                                        _shareRoomButtonPressed = true;
+                                      });
+                                      Timer(Duration(milliseconds: 200), () {
+                                        setState(() {
+                                          _shareRoomButtonPressed = false;
+                                        });
+                                      });
+                                      showShareRoomModal(roomModel: roomModel);
+                                    },
+                                    width:
+                                        MediaQuery.of(context).size.width * 0.6,
+                                    child: Text(
+                                      'Share the room',
+                                      style: TextStyle(
+                                          fontSize: 18, color: Colors.white),
+                                    ),
+                                  ),
                           ]
                         : [
                             Flexible(
@@ -317,7 +328,19 @@ class _DrawingWidgetState extends State<DrawingWidget>
                                   textAlign: TextAlign.center,
                                 ),
                               ),
-                            )
+                            ),
+                            LargeButton(
+                              buttonPressed: false,
+                              onTap: () {
+                                showShareRoomModal(roomModel: roomModel);
+                              },
+                              width: MediaQuery.of(context).size.width * 0.6,
+                              child: Text(
+                                'Share the room',
+                                style: TextStyle(
+                                    fontSize: 18, color: Colors.white),
+                              ),
+                            ),
                           ],
                   ),
                 ),
@@ -454,57 +477,68 @@ class _DrawingWidgetState extends State<DrawingWidget>
   }
 
   Widget gameBanner({String text}) {
-    return Container(
-      height: widget.canvasHeight,
-      width: widget.canvasWidth,
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            height: 140,
-            decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-                borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 3,
-                    blurRadius: 3,
-                    offset: Offset(0, 3), // changes position of shadow
+    return Center(
+      child: Container(
+        height: widget.canvasHeight,
+        width: widget.canvasWidth,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              height: MediaQuery.of(context).size.height * 0.30,
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 3,
+                      blurRadius: 3,
+                      offset: Offset(0, 3), // changes position of shadow
+                    ),
+                  ]),
+              width: MediaQuery.of(context).size.width,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: MediaQuery.of(context).size.height * 0.15,
+                        child: FlareActor(
+                          "assets/rive/draw.flr",
+                          alignment: Alignment.center,
+                          fit: BoxFit.contain,
+                          animation: "draw_hexagon",
+                          callback: (value) {},
+                        ),
+                      ),
+                      Flexible(
+                        fit: FlexFit.loose,
+                        child: Container(
+                          height: MediaQuery.of(context).size.height * 0.12,
+                          child: Text(
+                            text,
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: LinearProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Color(0xff3366ff),
+                          ),
+                          backgroundColor: Theme.of(context).primaryColor,
+                        ),
+                      )
+                    ],
                   ),
-                ]),
-            width: MediaQuery.of(context).size.width,
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      size: 30,
-                    ),
-                    Flexible(
-                      fit: FlexFit.loose,
-                      child: Text(
-                        text,
-                        style: TextStyle(
-                          fontSize: 16,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: LinearProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Color(0xff3366ff),
-                        ),
-                        backgroundColor: Theme.of(context).primaryColor,
-                      ),
-                    )
-                  ],
                 ),
               ),
             ),
@@ -527,5 +561,21 @@ class _DrawingWidgetState extends State<DrawingWidget>
 
   bool isSketcher({Player currentSketcher, User player}) {
     return currentSketcher.user.username == player.username;
+  }
+
+  void showShareRoomModal({RoomProvider roomModel}) {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) => Dialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              elevation: 0,
+              backgroundColor: Colors.white,
+              child: ShareRoomModal(
+                roomId: roomModel.roomId,
+                roomCreated: false,
+              ),
+            ));
   }
 }

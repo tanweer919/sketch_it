@@ -82,32 +82,32 @@ class RoomProvider extends ChangeNotifier {
 
   String get bannerText => _bannerText;
 
-  void set messages(List<Chat> newMessages) {
+  set messages(List<Chat> newMessages) {
     _room.messages = newMessages;
     notifyListeners();
   }
 
-  void set roomId(String id) {
+  set roomId(String id) {
     _room.id = id;
     notifyListeners();
   }
 
-  void set admin(User player) {
+  set admin(User player) {
     _room.admin = player;
     notifyListeners();
   }
 
-  void set status(String status) {
+  set status(String status) {
     _status = status;
     notifyListeners();
   }
 
-  void set slidingPanelChild(Widget child) {
+  set slidingPanelChild(Widget child) {
     _slidingPanelChild = child;
     notifyListeners();
   }
 
-  void set bannerText(String text) {
+  set bannerText(String text) {
     _bannerText = text;
     notifyListeners();
   }
@@ -142,7 +142,7 @@ class RoomProvider extends ChangeNotifier {
   }
 
   void changeAdmin(String username) {
-    print("======Change Admin ${username}=========");
+    print("======Change Admin $username=========");
     int index =
     _room.players.indexWhere((player) => player.user.username == username);
     if(index != -1) {

@@ -53,9 +53,9 @@ class ChatCard extends StatelessWidget {
         ? 'You'
         : message.user.username;
     Map<MessageType, String> generatedMessage = {
-      MessageType.UserMessage: '${username}: ',
-      MessageType.JoinedRoom: '${username} has joined the room',
-      MessageType.LeftRoom: '${username} has left the room',
+      MessageType.UserMessage: '$username: ',
+      MessageType.JoinedRoom: '$username has joined the room',
+      MessageType.LeftRoom: '$username has left the room',
       MessageType.PointsGained: message.message,
       MessageType.InfoMessage: message.message
     };

@@ -40,27 +40,27 @@ class PaintProvider extends ChangeNotifier {
 
   Color get strokeColor => _strokeColor;
 
-  void set points(List<Point> drawPoints) {
+  set points(List<Point> drawPoints) {
     _points = drawPoints;
     notifyListeners();
   }
 
-  void set strokeWidth(double width) {
+  set strokeWidth(double width) {
     _strokeWidth = width;
     notifyListeners();
   }
 
-  void set optionsIndex(int index) {
+  set optionsIndex(int index) {
     _optionsIndex = index;
     notifyListeners();
   }
 
-  void set backgroundColor(Color color) {
+  set backgroundColor(Color color) {
     _backgroundColor = color;
     notifyListeners();
   }
 
-  void set strokeColor(Color color) {
+  set strokeColor(Color color) {
     _strokeColor = color;
     notifyListeners();
   }

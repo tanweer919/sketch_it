@@ -5,6 +5,7 @@ import '../services/SocketIOService.dart';
 import '../services/GetItLocator.dart';
 import '../services/FlushbarHelper.dart';
 import '../Providers/AppProvider.dart';
+import '../commons/SelectOption.dart';
 
 class CreateRoomScreen extends StatefulWidget {
   @override
@@ -16,6 +17,7 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
   TextEditingController _roomNameController = TextEditingController();
   double maxp = 4;
   int _selectedMode = 0;
+  int _selectedVisiblity = 0;
   bool _inProgress = false;
 
   @override
@@ -34,7 +36,6 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Container(
-              height: MediaQuery.of(context).size.height * 0.93,
               decoration: BoxDecoration(
                 color: Color(0xff4f6ce4),
                 borderRadius: BorderRadius.all(
@@ -144,6 +145,38 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
+                      'Select Visiblity of the room',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SelectOption(
+                        label: 'Private',
+                        backgroundImagePath: 'assets/images/private_room.svg',
+                        isSelected: _selectedVisiblity == 0,
+                        onTap: () {
+                          setState(() {
+                            _selectedVisiblity = 0;
+                          });
+                        },
+                      ),
+                      SelectOption(
+                        label: 'Public',
+                        backgroundImagePath: 'assets/images/public_room.svg',
+                        isSelected: _selectedVisiblity == 1,
+                        onTap: () {
+                          setState(() {
+                            _selectedVisiblity = 1;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
                       'Select Playing Mode',
                       style: TextStyle(color: Colors.white),
                     ),
@@ -151,103 +184,22 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              _selectedMode = 0;
-                            });
-                          },
-                          child: Container(
-                            width: MediaQuery.of(context).size.width * 0.3,
-                            height: MediaQuery.of(context).size.width * 0.3,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
-                            ),
-                            child: Stack(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: SvgPicture.asset(
-                                    'assets/images/create_room.svg',
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(10)),
-                                    color: Color(0X30000000),
-                                    border: _selectedMode == 0
-                                        ? Border.all(
-                                            color: Colors.yellow, width: 3)
-                                        : null,
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      'Individual\nMode',
-                                      style: TextStyle(
-                                          fontSize: 16, color: Colors.white),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
+                      SelectOption(
+                        label: 'Individual\nMode',
+                        backgroundImagePath: 'assets/images/create_room.svg',
+                        isSelected: _selectedMode == 0,
+                        onTap: () {
+                          setState(() {
+                            _selectedMode = 0;
+                          });
+                        },
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: InkWell(
-                          onTap: () {
-                          },
-                          child: Container(
-                            width: MediaQuery.of(context).size.width * 0.3,
-                            height: MediaQuery.of(context).size.width * 0.3,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
-                            ),
-                            child: Stack(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: SvgPicture.asset(
-                                    'assets/images/team.svg',
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(10)),
-                                    color: Color(0X30000000),
-                                    border: _selectedMode == 1
-                                        ? Border.all(
-                                            color: Colors.yellow, width: 3)
-                                        : null,
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      'Coming\nSoon',
-                                      style: TextStyle(
-                                          fontSize: 16, color: Colors.white),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
-                      )
+                      SelectOption(
+                        label: 'Coming\nSoon',
+                        backgroundImagePath: 'assets/images/team.svg',
+                        isSelected: _selectedMode == 1,
+                        onTap: () {},
+                      ),
                     ],
                   ),
                   Padding(
@@ -269,7 +221,8 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
                                     ? CircularProgressIndicator(
                                         valueColor:
                                             new AlwaysStoppedAnimation<Color>(
-                                                Color(0xfff5f5f5),),
+                                          Color(0xfff5f5f5),
+                                        ),
                                       )
                                     : Text(
                                         'Create Room',
@@ -287,6 +240,7 @@ class _CreateRoomScreenState extends State<CreateRoomScreen> {
                                             roomName: _roomNameController.text,
                                             maxPlayers: maxp.toInt(),
                                             gameMode: _selectedMode,
+                                            visiblity: _selectedVisiblity,
                                             username: appProvider
                                                 .currentUser.username);
                                       } else {

@@ -31,6 +31,5 @@ class CustomTimerPainter extends CustomPainter {
     return animation.value != oldDelegate.animation.value ||
         color != oldDelegate.color ||
         backgroundColor != oldDelegate.backgroundColor;
-    ;
   }
 }

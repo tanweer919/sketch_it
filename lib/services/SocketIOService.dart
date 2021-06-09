@@ -32,8 +32,11 @@ class SocketIOService {
         String username = await _localStorage.getString('username');
         socket.emit('connected', {"username": username});
       });
-      socket.on(NEW_PLAYER, (username) {
-        _socketStream.addPlayer(Player(user: User(username: username), score: 0));
+      socket.on(NEW_PLAYER, (data) {
+        final String username = data["user"]["username"];
+        final String profilePicUrl = data["user"]["profilePicUrl"];
+        final int score = data["score"];
+        _socketStream.addPlayer(Player(user: User(username: username, profilePicUrl: profilePicUrl), score: score));
       });
       socket.on(LEFT_ROOM, (data) {
         final username = data["username"];
@@ -42,7 +45,7 @@ class SocketIOService {
         sendNewMessage(
           roomId: roomId,
           message: Chat(
-              user: User(username: username),
+              user: User(username: username,),
               messageType: MessageType.LeftRoom,
               message: ''),
         );
@@ -162,14 +165,15 @@ class SocketIOService {
   }
 
   void createRoom(
-      {String roomName, int maxPlayers, int gameMode, String username}) {
+      {String roomName, int maxPlayers, int visiblity, int gameMode, String username}) {
     socket.emit(
       CREATE_ROOM,
       {
         "roomName": roomName,
         "maxPlayers": maxPlayers,
         "gameMode": gameMode,
-        "admin": username
+        "admin": username,
+        "visiblity": visiblity
       },
     );
   }
@@ -179,7 +183,7 @@ class SocketIOService {
     sendNewMessage(
       roomId: roomId,
       message: Chat(
-          user: User(username: username),
+          user: User(username: username,),
           messageType: MessageType.JoinedRoom,
           message: ''),
     );

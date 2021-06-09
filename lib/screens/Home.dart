@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
@@ -24,40 +25,56 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _roomJoinButtonPressed = false;
   bool _createRoomButtonPressed = false;
   GlobalKey key = GlobalKey();
-
+  FocusNode _textFieldFocus = FocusNode();
+  bool _textFieldHasFocus = false;
   @override
   void initState() {
     _socketIOService.onRoomJoinedUsingRoomId = _onRoomJoinedUsingRoomId;
     super.initState();
+    _textFieldFocus.addListener(() {
+      if (_textFieldFocus.hasFocus) {
+        setState(() {
+          _textFieldHasFocus = true;
+        });
+      } else {
+        setState(() {
+          _textFieldHasFocus = false;
+        });
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     AppProvider _appProvider = Provider.of<AppProvider>(context);
     return SafeArea(
-      child: Scaffold(
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Color(0xfff0ece3),
-                borderRadius: BorderRadius.all(
-                  Radius.circular(20.0),
+      child: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Scaffold(
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Color(0xfff0ece3),
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(20.0),
+                  ),
                 ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  ClipPath(
-                    clipper: CustomClipPath(),
-                    child: Container(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Container(
                       height: MediaQuery.of(context).size.height * 0.7,
                       decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(20.0),
-                              topRight: Radius.circular(20.0))),
+                          image: DecorationImage(
+                            image:
+                                AssetImage('assets/images/border_drawing.png'),
+                            fit: BoxFit.fill,
+                          ),
+                          color: Colors.white),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -78,27 +95,39 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 24.0, vertical: 8.0),
-                            child: Container(
-                              decoration: BoxDecoration(
+                            child: DottedBorder(
+                              radius: Radius.circular(5.0),
+                              color: _textFieldHasFocus
+                                  ? Color(0xff3366ff)
+                                  : Colors.black,
+                              child: ClipRRect(
                                 borderRadius: const BorderRadius.all(
                                   const Radius.circular(5.0),
                                 ),
-                                color: Colors.white,
-                              ),
-                              child: TextField(
-                                controller: _roomIdFieldController,
-                                keyboardType: TextInputType.number,
-                                textAlign: TextAlign.center,
-                                decoration: InputDecoration(
-                                  hintText: 'Room ID',
-                                  contentPadding: EdgeInsets.all(8.0),
-                                  fillColor: Colors.white,
-                                  focusColor: Colors.white,
-                                  border: new OutlineInputBorder(
-                                    borderRadius: const BorderRadius.all(
-                                      const Radius.circular(5.0),
-                                    ),
-                                    borderSide: BorderSide.none,
+                                child: Container(
+                                  child: TextField(
+                                    focusNode: _textFieldFocus,
+                                    controller: _roomIdFieldController,
+                                    keyboardType: TextInputType.number,
+                                    textAlign: TextAlign.center,
+                                    decoration: InputDecoration(
+                                        hintText: 'Room ID',
+                                        contentPadding: EdgeInsets.all(8.0),
+                                        fillColor: Colors.white,
+                                        focusColor: Colors.white,
+                                        border: new OutlineInputBorder(
+                                          borderRadius: const BorderRadius.all(
+                                            const Radius.circular(5.0),
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: const BorderRadius.all(
+                                            const Radius.circular(5.0),
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Color(0xff3366ff),
+                                          ),
+                                        )),
                                   ),
                                 ),
                               ),
@@ -135,63 +164,72 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ],
                       ),
                     ),
-                  ),
-                  Container(
-                    height: MediaQuery.of(context).size.height * 0.23,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Create Room and invite friends to join',
-                          style:
-                              TextStyle(fontSize: 16, color: Color(0xff8d8c8a)),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            key: key,
-                            children: [
-                              LargeButton(
-                                child: Text(
-                                  'Create Room',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                inProgress: false,
-                                buttonPressed: _createRoomButtonPressed,
-                                width: MediaQuery.of(context).size.width * 0.6,
-                                isPrimaryColor: false,
-                                onTap: () {
-                                  setState(() {
-                                    _createRoomButtonPressed = true;
-                                  });
-                                  RenderBox box =
-                                      key.currentContext.findRenderObject();
-                                  Offset position =
-                                      box.localToGlobal(Offset.zero);
-                                  Offset modifiedPosition = Offset(
-                                      position.dx +
-                                          MediaQuery.of(context).size.width / 2,
-                                      position.dy);
-                                  Timer(Duration(milliseconds: 50), () {
-                                    setState(() {
-                                      _createRoomButtonPressed = false;
-                                    });
-                                    Navigator.of(context).pushNamed(
-                                      '/createroom',
-                                      arguments: {"offset": modifiedPosition},
-                                    );
-                                  });
-                                },
-                              ),
-                            ],
+                    Container(
+                      height: MediaQuery.of(context).size.height * 0.23,
+                      decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image:
+                                AssetImage('assets/images/dotted_border.png'),
+                            fit: BoxFit.fill,
                           ),
-                        )
-                      ],
-                    ),
-                  )
-                ],
+                          color: Colors.white),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Create Room and invite friends to join',
+                            style: TextStyle(
+                                fontSize: 16, color: Color(0xff8d8c8a)),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              key: key,
+                              children: [
+                                LargeButton(
+                                  child: Text(
+                                    'Create Room',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  inProgress: false,
+                                  buttonPressed: _createRoomButtonPressed,
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.6,
+                                  isPrimaryColor: false,
+                                  onTap: () {
+                                    setState(() {
+                                      _createRoomButtonPressed = true;
+                                    });
+                                    RenderBox box =
+                                        key.currentContext.findRenderObject();
+                                    Offset position =
+                                        box.localToGlobal(Offset.zero);
+                                    Offset modifiedPosition = Offset(
+                                        position.dx +
+                                            MediaQuery.of(context).size.width /
+                                                2,
+                                        position.dy);
+                                    Timer(Duration(milliseconds: 50), () {
+                                      setState(() {
+                                        _createRoomButtonPressed = false;
+                                      });
+                                      Navigator.of(context).pushNamed(
+                                        '/createroom',
+                                        arguments: {"offset": modifiedPosition},
+                                      );
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                    )
+                  ],
+                ),
               ),
             ),
           ),

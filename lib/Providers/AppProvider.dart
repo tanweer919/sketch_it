@@ -6,7 +6,7 @@ class AppProvider extends ChangeNotifier {
 
   User get currentUser => _currentUser;
 
-  void set currentUser(User user) {
+  set currentUser(User user) {
     _currentUser = user;
     notifyListeners();
   }

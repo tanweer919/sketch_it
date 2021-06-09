@@ -5,6 +5,7 @@ import '../screens/GameScreen.dart';
 import '../screens/ShareRoomScreen.dart';
 import '../commons/CircularRevealClipper.dart';
 import '../screens/IntroductionScreen.dart';
+import '../screens/UsernameScreen.dart';
 
 class RouterService {
   final GlobalKey<NavigatorState> navigationKey = GlobalKey<NavigatorState>();
@@ -14,7 +15,8 @@ class RouterService {
       '/join',
       '/createroom',
       '/shareroom',
-      '/introduction'
+      '/introduction',
+      '/username'
     ];
     if (validRoutes.contains(settings.name)) {
       return customRoutes(settings.name, settings.arguments);
@@ -28,6 +30,10 @@ class RouterService {
     Offset offset;
     bool roomCreated;
     Map<String, dynamic> initialRoomData;
+    bool googleLoginUsed;
+    String firebaseToken;
+    String email;
+    String profilePicUrl;
     if (args != null) {
       if (args.containsKey("message")) {
         message = args["message"];
@@ -44,6 +50,18 @@ class RouterService {
       if(args.containsKey("initialRoomData")) {
         initialRoomData = args["initialRoomData"];
       }
+      if(args.containsKey('googleLoginUsed')) {
+        googleLoginUsed = args["googleLoginUsed"];
+      }
+      if(args.containsKey('firebaseToken')) {
+        firebaseToken = args['firebaseToken'];
+      }
+      if(args.containsKey('email')) {
+        email = args['email'];
+      }
+      if(args.containsKey('profilePicUrl')) {
+        profilePicUrl = args['profilePicUrl'];
+      }
     }
     Map<String, Widget> screens = {
       '/home': HomeScreen(),
@@ -53,7 +71,8 @@ class RouterService {
         message: message,
         roomId: roomId,
       ),
-      '/introduction': IntroductionScreen()
+      '/introduction': IntroductionScreen(),
+      '/username': UsernameScreen(googleLoginUsed: googleLoginUsed, firebaseToken: firebaseToken, email: email, profilePicUrl: profilePicUrl,)
     };
     return PageRouteBuilder(
       pageBuilder: (_, __, ___) => screens[route],

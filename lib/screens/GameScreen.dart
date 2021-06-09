@@ -34,6 +34,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             (player) => Player(
               user: User(
                 username: player["user"]["username"],
+                profilePicUrl: player["user"]["profilePicUrl"]
               ),
               score: player["score"],
             ),
@@ -45,11 +46,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       "sketcher": Player(
         user: User(
           username: widget.initialRoomData["sketcher"]["user"]["username"],
+          profilePicUrl: widget.initialRoomData["sketcher"]["user"]["profilePicUrl"]
         ),
         score: widget.initialRoomData["sketcher"]["score"],
       ),
       "admin": User(
         username: widget.initialRoomData["admin"]["username"],
+        profilePicUrl: widget.initialRoomData["admin"]["profilePicUrl"]
       ),
       "status": widget.initialRoomData["status"],
       "gameStatus": GameStatus.values[widget.initialRoomData["gameStatus"]]

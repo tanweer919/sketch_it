@@ -39,7 +39,10 @@ dependencies:
   share: ^2.0.1
   shared_preferences: ^2.0.4
   flare_flutter: ^2.0.6
-
+  firebase_auth: ^1.0.1
+  google_sign_in: ^5.0.1
+  cached_network_image: ^3.0.0
+  dotted_border: ^2.0.0
 
 
 dev_dependencies:

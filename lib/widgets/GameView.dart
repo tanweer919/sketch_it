@@ -1,5 +1,10 @@
 import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flare_flutter/asset_provider.dart';
+import 'package:flare_flutter/flare_cache.dart';
+import 'package:flare_flutter/provider/asset_flare.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../Providers/PaintProvider.dart';
@@ -87,7 +92,7 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
       if (data["action"] == GameAction.EndGame) {
         List<Player> players = roomProvider.players;
         roomProvider.slidingPanelChild = FinalScoreboard(
-          players: players,
+          players: players
         );
         _slidingAnimationController.forward();
       }
@@ -95,6 +100,10 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
     _tabController = new TabController(vsync: this, length: _tabList.length);
     _slidingAnimationController = AnimationController(
         duration: Duration(milliseconds: 1000), vsync: this);
+    final AssetProvider assetProvider =
+    AssetFlare(bundle: rootBundle, name: 'assets/rive/draw.flr');
+    _warmupAnimations(assetProvider);
+    super.initState();
   }
 
   @override
@@ -296,15 +305,24 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
                         ),
                         Padding(
                           padding: const EdgeInsets.only(left: 2.0, right: 2.0),
-                          child: Container(
-                            width: 30.0,
-                            height: 30.0,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              image: DecorationImage(
-                                  image: AssetImage(
-                                      'assets/images/user_placeholder.jpg'),
-                                  fit: BoxFit.cover),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.all(Radius.circular(20)),
+                            child: Container(
+                              width: 30.0,
+                              height: 30.0,
+                              child: player.user.profilePicUrl != null
+                                  ? CachedNetworkImage(
+                                      imageUrl: player.user.profilePicUrl,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => Image.asset(
+                                        'assets/images/user_placeholder.jpg',
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : Image.asset(
+                                      'assets/images/user_placeholder.jpg',
+                                      fit: BoxFit.cover,
+                                    ),
                             ),
                           ),
                         ),
@@ -330,5 +348,9 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
         );
       },
     );
+  }
+
+  Future<void> _warmupAnimations(AssetProvider assetProvider) async {
+    await cachedActor(assetProvider);
   }
 }

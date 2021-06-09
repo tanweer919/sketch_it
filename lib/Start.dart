@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'services/LocalStorageService.dart';
 import 'services/GetItLocator.dart';
+import 'services/SocketIOService.dart';
 
 class Start extends StatefulWidget {
   @override
@@ -10,13 +11,29 @@ class Start extends StatefulWidget {
 class _StartState extends State<Start> {
 
   LocalStorageService _localStorageService = locator<LocalStorageService>();
+  final SocketIOService _socketIOService = locator<SocketIOService>();
   Future checkUsernameIsSet() async{
     final username = await _localStorageService.getString('username');
-    if(username == null) {
+    final String firstOpen = await _localStorageService.getString('firstOpen');
+    if(firstOpen == null) {
+      await _localStorageService.setString('firstOpen', 'no');
       Navigator.of(context).pushReplacementNamed('/introduction');
     }
     else {
-      Navigator.of(context).pushReplacementNamed('/home');
+      if(username == null) {
+        Navigator.of(context).pushReplacementNamed(
+          '/username',
+          arguments: {
+            "googleLoginUsed": false,
+            "firebaseToken": null,
+            "email": null,
+            "profilePicUrl": null
+          },
+        );
+      } else {
+        _socketIOService.connectToServer();
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
     }
   }
 
