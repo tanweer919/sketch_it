@@ -1,6 +1,6 @@
 import 'commons/enums.dart';
 
-final String baseAddress = 'https://c468432a81a1.ngrok.io';
+final String baseAddress = 'https://7813151bc926.ngrok.io';
 Map<MessageType, String> messageTypeToString = {
   MessageType.UserMessage: "userMessage",
   MessageType.JoinedRoom: "joinedRoom",
