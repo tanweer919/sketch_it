@@ -52,5 +52,5 @@ void setupLocator() {
     ),
   );
   locator.registerFactoryParam<AppProvider, User, void>(
-      (user, _) => AppProvider(user));
+      (user, _) => AppProvider(user, null));
 }

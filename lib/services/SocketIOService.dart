@@ -19,7 +19,6 @@ class SocketIOService {
   SocketStream _socketStream = locator<SocketStream>();
   LocalStorageService _localStorage = locator<LocalStorageService>();
   Function(bool, Map<String, dynamic>) onRoomCreated;
-  Function(Map<String, dynamic>) onRoomJoinedUsingRoomId;
   Function(Map<String, dynamic>) onRoomJoinedUsingLink;
 
   void connectToServer() {
@@ -80,7 +79,7 @@ class SocketIOService {
       socket.on(JOINED_ROOM, (data) {
         print(data);
         if(data["source"] == "roomId") {
-          onRoomJoinedUsingRoomId(data);
+          _socketStream.joinGame(data);
         } else if(data["source"] == "link") {
           onRoomJoinedUsingLink(data);
         }

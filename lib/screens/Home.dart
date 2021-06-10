@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../services/GetItLocator.dart';
-import '../widgets/CustomClipPath.dart';
 import '../services/SocketIOService.dart';
 import '../services/RoomService.dart';
 import '../services/FlushbarHelper.dart';
 import '../Providers/AppProvider.dart';
 import '../commons/LargeYellowButton.dart';
+import '../widgets/PublicRoomsView.dart';
+import '../services/SocketStream.dart';
+import '../commons/enums.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -27,9 +29,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   GlobalKey key = GlobalKey();
   FocusNode _textFieldFocus = FocusNode();
   bool _textFieldHasFocus = false;
+  SocketStream _socketStream = locator<SocketStream>();
+  StreamSubscription _gameStreamSubscription;
   @override
   void initState() {
-    _socketIOService.onRoomJoinedUsingRoomId = _onRoomJoinedUsingRoomId;
     super.initState();
     _textFieldFocus.addListener(() {
       if (_textFieldFocus.hasFocus) {
@@ -42,6 +45,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         });
       }
     });
+
+    _gameStreamSubscription = _socketStream.gameStream.listen(
+      (data) {
+        if (data["action"] == GameAction.JoinGame) {
+          Navigator.of(context).pushReplacementNamed('/join', arguments: {
+            "roomId": data["data"]["roomId"],
+            "initialRoomData": data["data"]["initialRoomData"]
+          });
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _gameStreamSubscription.cancel();
+    super.dispose();
   }
 
   @override
@@ -58,7 +78,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               padding: const EdgeInsets.all(8.0),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Color(0xfff0ece3),
                   borderRadius: BorderRadius.all(
                     Radius.circular(20.0),
                   ),
@@ -96,6 +115,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 24.0, vertical: 8.0),
                             child: DottedBorder(
+                              borderType: BorderType.RRect,
                               radius: Radius.circular(5.0),
                               color: _textFieldHasFocus
                                   ? Color(0xff3366ff)
@@ -180,7 +200,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           Text(
                             'Create Room and invite friends to join',
                             style: TextStyle(
-                                fontSize: 16, color: Color(0xff8d8c8a)),
+                              fontSize: 16,
+                              color: Color(0xff8d8c8a),
+                            ),
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -227,7 +249,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           )
                         ],
                       ),
-                    )
+                    ),
+                    PublicRoomView(),
                   ],
                 ),
               ),
@@ -236,13 +259,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
       ),
     );
-  }
-
-  void _onRoomJoinedUsingRoomId(Map<String, dynamic> data) {
-    Navigator.of(context).pushReplacementNamed('/join', arguments: {
-      "roomId": data["roomId"],
-      "initialRoomData": data["initialRoomData"]
-    });
   }
 
   Future onRoomJoinPressed({AppProvider appProvider}) async {

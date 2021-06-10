@@ -17,6 +17,10 @@ class SocketStream {
       StreamController<Map<String, dynamic>>.broadcast();
   StreamController _gameController =
       StreamController<Map<String, dynamic>>.broadcast();
+
+  void joinGame(Map<String, dynamic> data) {
+    _gameController.add({"action": GameAction.JoinGame, "data": data});
+  }
   void addPoint(Point point) {
     _pointStreamController.sink
         .add({"action": DrawAction.Draw, "point": point});
