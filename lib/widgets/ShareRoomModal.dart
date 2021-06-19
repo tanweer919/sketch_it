@@ -1,8 +1,11 @@
+import 'package:flushbar/flushbar_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:share/share.dart';
 import '../services/DynamicLinkService.dart';
 import '../services/GetItLocator.dart';
+import '../services/FlushbarHelper.dart';
 
 class ShareRoomModal extends StatelessWidget {
   final DynamicLinkService _dynamicLinkService = locator<DynamicLinkService>();
@@ -93,28 +96,38 @@ class ShareRoomModal extends StatelessWidget {
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(
-                      const Radius.circular(5.0),
+                child: InkWell(
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: roomId));
+                    FlushbarAlert.showAlert(
+                        context: context,
+                        title: "Success",
+                        message: "Copied to Clipboard",
+                        seconds: 3);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(
+                        const Radius.circular(5.0),
+                      ),
+                      color: Theme.of(context).primaryColor,
                     ),
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Center(
-                            child: Text(
-                              '$roomId',
-                              style:
-                                  TextStyle(fontSize: 18, color: Colors.white),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Center(
+                              child: Text(
+                                '$roomId',
+                                style: TextStyle(
+                                    fontSize: 18, color: Colors.white),
+                              ),
                             ),
                           ),
-                        ),
-                        Icon(Icons.copy, color: Colors.white)
-                      ],
+                          Icon(Icons.copy, color: Colors.white)
+                        ],
+                      ),
                     ),
                   ),
                 ),

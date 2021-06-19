@@ -1,12 +1,13 @@
 import 'commons/enums.dart';
 
-final String baseAddress = 'https://c203e9fa2416.ngrok.io';
+final String baseAddress = 'https://aa6011a33958.ngrok.io';
 Map<MessageType, String> messageTypeToString = {
   MessageType.UserMessage: "userMessage",
   MessageType.JoinedRoom: "joinedRoom",
   MessageType.LeftRoom: "leftRoom",
   MessageType.PointsGained: "pointsGained",
-  MessageType.InfoMessage: "infoMessage"
+  MessageType.InfoMessage: "infoMessage",
+  MessageType.CreateRoom: "createRoom",
 };
 
 Map<String, MessageType> stringToMessageType = {
@@ -14,7 +15,8 @@ Map<String, MessageType> stringToMessageType = {
   "joinedRoom": MessageType.JoinedRoom,
   "leftRoom": MessageType.LeftRoom,
   "pointsGained": MessageType.PointsGained,
-  "infoMessage": MessageType.InfoMessage
+  "infoMessage": MessageType.InfoMessage,
+  "createRoom": MessageType.CreateRoom,
 };
 
 //Socket Events

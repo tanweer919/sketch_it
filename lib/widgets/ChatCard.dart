@@ -14,16 +14,20 @@ class ChatCard extends StatelessWidget {
     MessageType.JoinedRoom: CustomIcons.enter_room,
     MessageType.LeftRoom: CustomIcons.leave_room,
     MessageType.PointsGained: Icons.celebration,
-    MessageType.InfoMessage: Icons.info_outline
+    MessageType.InfoMessage: Icons.info_outline,
+    MessageType.CreateRoom: CustomIcons.enter_room
   };
 
   @override
   Widget build(BuildContext context) {
+    print(message);
     return Container(
       decoration: BoxDecoration(
-          color: isCorrect ? Colors.green : Colors.white,
-          border:
-              Border(bottom: BorderSide(color: Color(0x33000000), width: 0.7))),
+        color: isCorrect ? Colors.green : Colors.white,
+        border: Border(
+          bottom: BorderSide(color: Color(0x33000000), width: 0.7),
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
         child: Row(
@@ -54,10 +58,11 @@ class ChatCard extends StatelessWidget {
         : message.user.username;
     Map<MessageType, String> generatedMessage = {
       MessageType.UserMessage: '$username: ',
-      MessageType.JoinedRoom: '$username has joined the room',
-      MessageType.LeftRoom: '$username has left the room',
+      MessageType.JoinedRoom: '$username joined the room',
+      MessageType.LeftRoom: '$username left the room',
       MessageType.PointsGained: message.message,
-      MessageType.InfoMessage: message.message
+      MessageType.InfoMessage: message.message,
+      MessageType.CreateRoom: '$username created the room'
     };
     return RichText(
       text: TextSpan(
