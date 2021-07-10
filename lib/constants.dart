@@ -1,6 +1,6 @@
 import 'commons/enums.dart';
 
-final String baseAddress = 'https://aa6011a33958.ngrok.io';
+final String baseAddress = 'https://api.justsketch.in';
 Map<MessageType, String> messageTypeToString = {
   MessageType.UserMessage: "userMessage",
   MessageType.JoinedRoom: "joinedRoom",
