@@ -4,9 +4,6 @@ import 'package:just_sketch/Providers/AppProvider.dart';
 import 'package:provider/provider.dart';
 import 'SketchPainter.dart';
 import 'package:socket_io_client/socket_io_client.dart';
-import 'BackroundColorSelector.dart';
-import 'StrokeColorSelector.dart';
-import 'StrokeWidthSlider.dart';
 import '../services/SocketIOService.dart';
 import '../services/GetItLocator.dart';
 import '../Providers/PaintProvider.dart';
@@ -20,49 +17,46 @@ import '../models/User.dart';
 import '../services/SocketStream.dart';
 import '../models/Player.dart';
 import 'GameOverlay.dart';
+import 'BrushOptions.dart';
 
-class DrawingWidget extends StatefulWidget {
+class DrawingCanvas extends StatefulWidget {
   final double canvasHeight;
   final double canvasWidth;
-  DrawingWidget({
+  DrawingCanvas({
     Key key,
     @required this.canvasHeight,
     @required this.canvasWidth,
   }) : super(key: key);
   @override
-  _DrawingWidgetState createState() => _DrawingWidgetState();
+  _DrawingCanvasState createState() => _DrawingCanvasState();
 }
 
-class _DrawingWidgetState extends State<DrawingWidget>
+class _DrawingCanvasState extends State<DrawingCanvas>
     with SingleTickerProviderStateMixin {
   Socket socket;
   SocketIOService _socketIOService = locator<SocketIOService>();
-  List<Widget> options;
-  AnimationController _gameBannerAnimationController;
-  bool _editOptionSelected = false;
-  bool _showMenuIcon = true;
-  bool _animatingMenuBackward = false;
-  Timer _secondsLeftToDrawTimer;
+  AnimationController
+      _gameOverlayAnimationController; //Animation controller for game overlay
+  Timer _secondsLeftToDrawTimer; //Seconds left in the room
   SocketStream _socketStream = locator<SocketStream>();
   StreamSubscription _gameStreamSubscription;
   int seconds = 60;
   bool _shareRoomButtonPressed = false;
   @override
   void initState() {
-    options = [
-      StrokeColorSelector(),
-      BackgroundColorSelector(),
-      StrokeWidthSlider()
-    ];
-    _gameBannerAnimationController =
+    _gameOverlayAnimationController =
         AnimationController(vsync: this, duration: Duration(milliseconds: 300));
 
+    //Subscribe to the game stream
     _gameStreamSubscription = _socketStream.gameStream.listen(
       (data) {
         if (data["action"] == GameAction.StartDrawing) {
+          //Start the timer when start drawing event occur
           setState(() {
             seconds = 60;
           });
+
+          //Set interval to decrease timer every second
           _secondsLeftToDrawTimer = Timer.periodic(
             Duration(seconds: 1),
             (timer) {
@@ -78,16 +72,27 @@ class _DrawingWidgetState extends State<DrawingWidget>
         }
         if (data["action"] == GameAction.EndTurn ||
             data["action"] == GameAction.SkipTurn) {
+          //If turn is ended
+          //Stop the timer
           if (_secondsLeftToDrawTimer != null) {
             _secondsLeftToDrawTimer.cancel();
           }
+
+          //Clear canvas
           _socketStream.clearDrawing();
-          _gameBannerAnimationController.forward();
+
+          //Run the game overlay animation
+          _gameOverlayAnimationController.forward();
         }
         if (data["action"] == GameAction.StartTurn) {
-          if (_gameBannerAnimationController.isCompleted) {
-            _gameBannerAnimationController.animateTo(2.0);
-            _gameBannerAnimationController.reset();
+          //If turn starts
+          if (_gameOverlayAnimationController.isCompleted) {
+            //If gameOverlayAnimationController is completed
+            //Run the game overlay animation to 200%, so the overlay slides to the right side out of view
+            _gameOverlayAnimationController.animateTo(2.0);
+
+            //After that, reset the animation to the initial state
+            _gameOverlayAnimationController.reset();
           }
         }
       },
@@ -251,7 +256,7 @@ class _DrawingWidgetState extends State<DrawingWidget>
                   currentSketcher: roomModel.currentSketcher, player: player))
                 Align(
                   alignment: Alignment.bottomRight,
-                  child: editOptions(model: model),
+                  child: BrushOptions(),
                 ),
               if (roomModel.gameStatus == GameStatus.NotStarted)
                 Container(
@@ -344,131 +349,16 @@ class _DrawingWidgetState extends State<DrawingWidget>
                   ),
                 ),
               AnimatedBuilder(
-                animation: _gameBannerAnimationController,
+                animation: _gameOverlayAnimationController,
                 builder: (context, child) => Transform.translate(
                   offset: Offset(
                       -MediaQuery.of(context).size.width *
-                          (1 - _gameBannerAnimationController.value),
+                          (1 - _gameOverlayAnimationController.value),
                       0),
                   child: GameOverlay(text: roomModel.bannerText),
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget editOptions({@required PaintProvider model}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0, left: 12.0, right: 12.0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.all(Radius.circular(30.0)),
-        child: AnimatedContainer(
-          duration: Duration(milliseconds: 300),
-          decoration: BoxDecoration(
-            color: Color(0xff71f6ad),
-          ),
-          onEnd: () {
-            if (_animatingMenuBackward) {
-              setState(() {
-                _showMenuIcon = true;
-              });
-            }
-          },
-          width: !_editOptionSelected
-              ? 50
-              : MediaQuery.of(context).size.width * 0.9,
-          height: !_editOptionSelected ? 50 : 110,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: _showMenuIcon
-                ? InkWell(
-                    onTap: () {
-                      setState(() {
-                        _editOptionSelected = true;
-                        _showMenuIcon = false;
-                        _animatingMenuBackward = false;
-                      });
-                    },
-                    child: Container(
-                        height: 50,
-                        width: 50,
-                        child: Center(
-                            child: Icon(
-                          CustomIcons.options,
-                        ))),
-                  )
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0, vertical: 4.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                model.optionsIndex = 0;
-                              },
-                              child: CircleAvatar(
-                                backgroundColor: model.optionsIndex == 0
-                                    ? Colors.white
-                                    : Color(0xff71f6ad),
-                                child: Icon(
-                                  Icons.color_lens,
-                                ),
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                model.optionsIndex = 1;
-                              },
-                              child: CircleAvatar(
-                                backgroundColor: model.optionsIndex == 1
-                                    ? Colors.white
-                                    : Color(0xff71f6ad),
-                                child: Icon(
-                                  Icons.format_color_fill,
-                                ),
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                model.optionsIndex = 2;
-                              },
-                              child: CircleAvatar(
-                                backgroundColor: model.optionsIndex == 2
-                                    ? Colors.white
-                                    : Color(0xff71f6ad),
-                                child: Icon(
-                                  CustomIcons.stroke_width,
-                                ),
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _editOptionSelected = false;
-                                  _animatingMenuBackward = true;
-                                });
-                              },
-                              child: Icon(
-                                CustomIcons.collapse,
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0, vertical: 4.0),
-                        child: options[model.optionsIndex],
-                      )
-                    ],
-                  ),
           ),
         ),
       ),
@@ -492,17 +382,19 @@ class _DrawingWidgetState extends State<DrawingWidget>
 
   void showShareRoomModal({RoomProvider roomModel}) {
     showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) => Dialog(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              elevation: 0,
-              backgroundColor: Colors.white,
-              child: ShareRoomModal(
-                roomId: roomModel.roomId,
-                roomCreated: false,
-              ),
-            ));
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        elevation: 0,
+        backgroundColor: Colors.white,
+        child: ShareRoomModal(
+          roomId: roomModel.roomId,
+          roomCreated: false,
+        ),
+      ),
+    );
   }
 }

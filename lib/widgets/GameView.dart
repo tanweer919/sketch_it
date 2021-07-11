@@ -9,7 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../Providers/PaintProvider.dart';
 import '../services/GetItLocator.dart';
-import '../widgets/DrawingWidget.dart';
+import '../widgets/DrawingCanvas.dart';
 import '../models/Point.dart';
 import '../widgets/ChatCard.dart';
 import '../models/Chat.dart';
@@ -150,7 +150,7 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
                     ),
                     ChangeNotifierProvider(
                       create: (context) => _paintProvider,
-                      child: DrawingWidget(
+                      child: DrawingCanvas(
                         canvasHeight: canvasHeight,
                         canvasWidth: canvasRatio * canvasHeight,
                       ),
