@@ -23,6 +23,8 @@ import '../models/PictionaryWord.dart';
 import '../widgets/WordSelectionPanel.dart';
 import '../models/Player.dart';
 import '../widgets/FinalScoreboard.dart';
+import 'ChatAndScoresWidget.dart';
+import 'ChatTextField.dart';
 
 class GameView extends StatefulWidget {
   @override
@@ -33,16 +35,12 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
   PaintProvider _paintProvider;
   AnimationController _slidingAnimationController;
   AnimationController _wordSelectionTimerAnimationController;
-  final ScrollController _chatScrollController = ScrollController();
-  TextEditingController _messageController = TextEditingController();
-  SocketIOService _socketIOService = locator<SocketIOService>();
   SocketStream _socketStream = locator<SocketStream>();
-  StreamSubscription _messageStreamSubscription;
   StreamSubscription _gameStreamSubscription;
-  TabController _tabController;
-  List<Tab> _tabList = [];
+  
   @override
   void initState() {
+    //Initial brush setting
     _paintProvider = locator<PaintProvider>(
       param1: <Point>[],
       param2: {
@@ -54,52 +52,60 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
     );
     final RoomProvider roomProvider =
         Provider.of<RoomProvider>(context, listen: false);
-    _messageStreamSubscription = _socketStream.messageStream.listen((message) {
-      _chatScrollController.animateTo(
-          _chatScrollController.position.maxScrollExtent + 40,
-          duration: Duration(milliseconds: 200),
-          curve: Curves.easeOut);
-    });
-    _tabList.addAll([
-      new Tab(
-        text: 'Chats',
-      ),
-      new Tab(
-        text: 'Scoreboard',
-      )
-    ]);
+
+    //Animation Controller for word selection widget
     _wordSelectionTimerAnimationController = AnimationController(
       vsync: this,
       duration: Duration(seconds: 20),
     );
+
+    //Subscribe to Game stream
     _gameStreamSubscription = _socketStream.gameStream.listen((data) {
       if (data["action"] == GameAction.WordSelection) {
+        //If event is word selection
+        //Get the three words to show
         final List<PictionaryWord> pictionaryWords = data["words"];
+
+        //Display word selection widget in the sliding panel
         roomProvider.slidingPanelChild = WordSelectionPanel(
           words: pictionaryWords,
           animationController: _wordSelectionTimerAnimationController,
         );
+
+        //Run silding animation
         _slidingAnimationController.forward();
+
+        //Run timer animation in reverse
         _wordSelectionTimerAnimationController.reverse(from: 100.0);
       }
       if (data["action"] == GameAction.StartDrawing ||
           data["action"] == GameAction.SkipTurn) {
+        //If the word is selected or turn is skipped
         if (_slidingAnimationController.isCompleted) {
+          //Retract the sliding panel
           _slidingAnimationController.reverse();
         }
       }
 
       if (data["action"] == GameAction.EndGame) {
+        //If game ended
         List<Player> players = roomProvider.players;
+
+        //Display scoreboard widget in the sliding panel
         roomProvider.slidingPanelChild = FinalScoreboard(
           players: players
         );
+
+        //Run the animation
         _slidingAnimationController.forward();
       }
     });
-    _tabController = new TabController(vsync: this, length: _tabList.length);
+
+    //Sliding animation controller
     _slidingAnimationController = AnimationController(
         duration: Duration(milliseconds: 1000), vsync: this);
+
+    //Asset provider for flare    
     final AssetProvider assetProvider =
     AssetFlare(bundle: rootBundle, name: 'assets/rive/draw.flr');
     _warmupAnimations(assetProvider);
@@ -108,7 +114,7 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _messageStreamSubscription.cancel();
+    //Cancel subscription to the game stream
     _gameStreamSubscription.cancel();
     super.dispose();
   }
@@ -149,40 +155,8 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
                         canvasWidth: canvasRatio * canvasHeight,
                       ),
                     ),
-                    chatsAndPlayerSection(model: model),
-                    Container(
-                      color: Theme.of(context).accentColor,
-                      child: TextField(
-                        controller: _messageController,
-                        enabled: !(model.currentSketcher.user.username ==
-                            appProvider.currentUser.username),
-                        cursorColor: Colors.white,
-                        style: TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          suffixIcon: InkWell(
-                            onTap: () {
-                              if (_messageController.text != '') {
-                                final Chat message = Chat(
-                                    user: appProvider.currentUser,
-                                    message: _messageController.text,
-                                    messageType: MessageType.UserMessage);
-                                _socketIOService.sendNewMessage(
-                                    roomId: model.roomId, message: message);
-                                _messageController.text = '';
-                              }
-                            },
-                            child: Icon(
-                              Icons.send,
-                              color: Colors.white,
-                            ),
-                          ),
-                          hintText: 'Type anything to make a guess',
-                          hintStyle: TextStyle(color: Colors.white),
-                          contentPadding:
-                              EdgeInsets.only(left: 8.0, right: 8.0, top: 12.0),
-                        ),
-                      ),
-                    )
+                    ChatsAndScoresWidget(),
+                    ChatTextField(),
                   ],
                 ),
                 AnimatedBuilder(
@@ -195,160 +169,14 @@ class _GameViewState extends State<GameView> with TickerProviderStateMixin {
                     ),
                     child: SlidingDownPanel(child: model.slidingPanelChild),
                   ),
-                )
+                ),
               ],
-            )),
-      ),
-    );
-  }
-
-  Widget chatsAndPlayerSection({@required RoomProvider model}) {
-    return Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-            border:
-                Border(top: BorderSide(color: Color(0x44000000), width: 0.7))),
-        child: Column(
-          children: [
-            Container(
-              color: Colors.white,
-              child: new TabBar(
-                labelColor: Colors.black,
-                labelStyle: TextStyle(
-                  fontSize: 17,
-                ),
-                controller: _tabController,
-                tabs: _tabList,
-                indicatorColor: Theme.of(context).primaryColor,
-                indicatorSize: TabBarIndicatorSize.tab,
-                indicator: UnderlineTabIndicator(
-                  borderSide: BorderSide(
-                    width: 2.0,
-                    color: Theme.of(context).accentColor,
-                  ),
-                ),
-              ),
             ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [chatsTab(model: model), scoresTab(model: model)],
-              ),
-            )
-          ],
         ),
       ),
     );
   }
 
-  Widget chatsTab({@required RoomProvider model}) {
-    return model.messages.length > 0
-        ? ListView.builder(
-            controller: _chatScrollController,
-            shrinkWrap: true,
-            itemCount: model.messages.length,
-            itemBuilder: (BuildContext context, int index) {
-              return ChatCard(
-                message: model.messages[index],
-                isCorrect: model.messages[index].messageType ==
-                    MessageType.PointsGained,
-              );
-            },
-          )
-        : Container(
-            width: MediaQuery.of(context).size.width,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  child: SvgPicture.asset(
-                    'assets/images/empty.svg',
-                    fit: BoxFit.cover,
-                    width: MediaQuery.of(context).size.width * 0.4,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    'Wow, so empty. Start making guesses.',
-                    style: TextStyle(color: Color(0x55000000)),
-                  ),
-                )
-              ],
-            ),
-          );
-  }
-
-  Widget scoresTab({@required RoomProvider model}) {
-    return ListView.builder(
-      shrinkWrap: true,
-      itemCount: model.players.length,
-      itemBuilder: (BuildContext context, int index) {
-        Player player = model.players[index];
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${index + 1}.',
-                          style: TextStyle(fontSize: 18),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 2.0, right: 2.0),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.all(Radius.circular(20)),
-                            child: Container(
-                              width: 30.0,
-                              height: 30.0,
-                              child: player.user.profilePicUrl != null
-                                  ? CachedNetworkImage(
-                                      imageUrl: player.user.profilePicUrl,
-                                      fit: BoxFit.cover,
-                                      placeholder: (context, url) => Image.asset(
-                                        'assets/images/user_placeholder.jpg',
-                                        fit: BoxFit.cover,
-                                      ),
-                                    )
-                                  : Image.asset(
-                                      'assets/images/user_placeholder.jpg',
-                                      fit: BoxFit.cover,
-                                    ),
-                            ),
-                          ),
-                        ),
-                        Text(
-                          player.user.username,
-                          style: TextStyle(fontSize: 20),
-                        ),
-                      ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Text(
-                        '${player.score}',
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.w500),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   Future<void> _warmupAnimations(AssetProvider assetProvider) async {
     await cachedActor(assetProvider);

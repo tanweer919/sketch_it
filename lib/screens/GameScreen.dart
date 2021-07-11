@@ -22,11 +22,12 @@ class GameScreen extends StatefulWidget {
   _GameScreenState createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
+class _GameScreenState extends State<GameScreen> {
   RoomProvider _roomProvider;
   SocketIOService _socketIOService = locator<SocketIOService>();
   @override
   void initState() {
+    //Create provider for the created room with the initial data received from the server
     _roomProvider = locator<RoomProvider>(param1: {
       "roomId": widget.roomId,
       "players": widget.initialRoomData["players"]
@@ -83,16 +84,18 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     return AlertDialog(
                       content: Text('Are you sure you want to leave the game?'),
                       actions: <Widget>[
-                        FlatButton(
+                        TextButton(
                           child: Text('Cancel'),
                           onPressed: () {
                             Navigator.of(context).pop(false);
                           },
                         ),
-                        FlatButton(
+                        TextButton(
                           child: Text('Yes, leave'),
                           onPressed: () {
+                            //Cancel all subscriptions to the different streams
                             model.cancelStreamSubsciptions();
+                            //Inform server that the player is leaving
                             _socketIOService.leaveRoom(
                                 roomId: widget.roomId,
                                 username: appProvider.currentUser.username);

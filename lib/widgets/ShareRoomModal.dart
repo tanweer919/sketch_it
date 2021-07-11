@@ -1,4 +1,3 @@
-import 'package:flushbar/flushbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -10,7 +9,8 @@ import '../services/FlushbarHelper.dart';
 class ShareRoomModal extends StatelessWidget {
   final DynamicLinkService _dynamicLinkService = locator<DynamicLinkService>();
   final String roomId;
-  final roomCreated;
+  //roomCreated is true when modal is displayed for the first time else it is false
+  final bool roomCreated; 
   ShareRoomModal({@required this.roomId, @required this.roomCreated});
   @override
   Widget build(BuildContext context) {
